@@ -1,0 +1,22 @@
+imprimir("🚀 NexusLang v5.3 - Demo en 30 segundos")
+def calcular_total(precio, cantidad) => precio * cantidad
+imprimir("Funciones: " + texto(calcular_total(100.5, 3)))
+clase Producto {
+    def __init__(nombre, precio) {
+        este.nombre = nombre
+        este.precio = precio
+    }
+    def info() {
+        devolver este.nombre + ": $" + texto(este.precio)
+    }
+}
+p = Producto("Laptop Pro", 999.99)
+imprimir("Clases/OOP: " + p.info())
+async funcion api() {
+    devolver {"status": "online"}
+}
+imprimir("Async: " + texto(async_run(api())))
+imprimir("IA: " + texto(ia.sentimiento("excellent and amazing")))
+db.demo.producto = {"nombre": "Laptop"}
+imprimir("Base de datos: " + texto(db.demo.producto))
+imprimir("✅ Demo completo - listo para produccion")

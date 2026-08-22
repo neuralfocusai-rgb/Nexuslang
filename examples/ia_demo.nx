@@ -1,0 +1,6 @@
+// Inteligencia Artificial integrada
+texto = "Me encanta este producto, es excelente y genial"
+imprimir("Sentimiento: " + texto(ia.sentimiento(texto)))
+imprimir("Palabras clave: " + texto(ia.palabras_clave(texto, 3)))
+imprimir("Chatbot: " + ia.chatbot("hola"))
+imprimir("Prediccion: " + texto(ia.predecir([100, 150, 200, 250])))

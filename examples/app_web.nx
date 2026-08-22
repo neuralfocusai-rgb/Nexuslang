@@ -1,0 +1,11 @@
+// App web FULL-STACK: HTML + API en un solo archivo
+def inicio() => web.pagina("Mi App NexusLang", web.parrafo("Hola desde el servidor!") + web.boton("Click") + web.caja("Backend + Frontend en un archivo .nx"))
+
+def api_datos() => {"app": "MiApp", "version": "5.1", "usuarios": 2}
+
+s = web.servidor(8081)
+s.ruta("/", inicio)
+s.ruta("/api/datos", api_datos)
+imprimir("App en http://localhost:8081/")
+imprimir("API en http://localhost:8081/api/datos")
+s.iniciar()

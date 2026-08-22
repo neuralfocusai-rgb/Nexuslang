@@ -1,0 +1,5 @@
+// Base de datos tipo Firebase
+db.productos.laptop = {"nombre": "Laptop Pro", "precio": 999}
+db.productos.movil = {"nombre": "Movil X", "precio": 599}
+imprimir("Producto: " + texto(db.productos.laptop))
+imprimir(db.guardar())

@@ -1,0 +1,4 @@
+// My first NexusLang program (English)
+name = "World"
+print("Hello " + name + "!")
+print("NexusLang is bilingual and powerful")

@@ -1,0 +1,30 @@
+// NexusLang v5.3 - DEMO PROFESIONAL
+def calcular_total(precio, cantidad) => precio * cantidad
+
+clase Producto {
+    def __init__(nombre, precio) {
+        este.nombre = nombre
+        este.precio = precio
+    }
+    def info() {
+        devolver este.nombre + ": $" + texto(este.precio)
+    }
+}
+
+async funcion obtener_api() {
+    devolver {"status": "online", "version": "5.3"}
+}
+
+intentar {
+    imprimir("Total: $" + texto(calcular_total(100.5, 3)))
+    p = Producto("Laptop Pro", 999.99)
+    imprimir(p.info())
+    imprimir("Async: " + texto(async_run(obtener_api())))
+} capturar (error) {
+    imprimir("Error: " + texto(error))
+}
+
+imprimir("Sentimiento: " + texto(ia.sentimiento("excelente y genial")))
+db.productos.laptop = {"nombre": "Laptop", "precio": 999}
+imprimir("DB: " + texto(db.productos.laptop))
+imprimir("Demo completado - NexusLang v5.3 Professional")

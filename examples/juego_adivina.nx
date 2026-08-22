@@ -1,0 +1,17 @@
+// Juego: Adivina el numero
+secreto = aleatorio(1, 10)
+intentos = 0
+mientras (verdadero) {
+    intento = int(input("Adivina (1-10): "))
+    intentos = intentos + 1
+    si (intento == secreto) {
+        imprimir("Ganaste en " + texto(intentos) + " intentos!")
+        romper
+    } sino {
+        si (intento < secreto) {
+            imprimir("Mas alto...")
+        } sino {
+            imprimir("Mas bajo...")
+        }
+    }
+}

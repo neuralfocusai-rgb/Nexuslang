@@ -1,0 +1,4 @@
+// Genera un sitio web real
+contenido = web.parrafo("Creado con NexusLang v5.0") + web.boton("Comprar") + web.caja("100% soberano")
+html = web.pagina("Mi Empresa", contenido)
+imprimir(web.guardar("empresa", html))

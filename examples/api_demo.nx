@@ -1,0 +1,9 @@
+// API REST real con NexusLang (como Flask/Express)
+def estado() => {"lenguaje": "NexusLang", "version": "5.1", "status": "online"}
+def productos() => {"total": 2, "items": ["laptop", "movil"]}
+
+s = web.servidor(8080)
+s.ruta("/api/estado", estado)
+s.ruta("/api/productos", productos)
+imprimir("API en http://localhost:8080/api/estado")
+s.iniciar()

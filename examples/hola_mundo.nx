@@ -1,0 +1,4 @@
+// Mi primer programa en NexusLang (Español)
+nombre = "Mundo"
+imprimir("Hola " + nombre + "!")
+imprimir("NexusLang es bilingüe y poderoso")
