@@ -1,0 +1,101 @@
+
+// NexusShop v0.7 - El Shopify Soberano
+clase NexusShop {
+    def __init__() {
+        este.tiendas = {}
+        este.slugs = []
+        este.visitas = {}
+        este.admin = "542257550650"
+        imprimir("🛒 NexusShop v0.7 - El Shopify Soberano")
+    }
+
+    def crear_tienda(slug, nombre, whatsapp, emoji) {
+        este.tiendas[slug] = {"nombre": nombre, "whatsapp": whatsapp, "emoji": emoji, "productos": []}
+        este.slugs = este.slugs + [slug]
+        este.visitas[slug] = 0
+    }
+
+    def agregar_producto(slug, nombre, precio, emoji) {
+        este.tiendas[slug]["productos"] = este.tiendas[slug]["productos"] + [{"nombre": nombre, "precio": precio, "emoji": emoji}]
+    }
+
+    def tarjeta(p, whatsapp) {
+        link = "https://wa.me/" + whatsapp + "?text=Hola+quiero+pedir+" + p["nombre"]
+        devolver "<div style='background:white;border:1px solid lightgray;border-radius:12px;padding:18px;margin:12px 0;display:flex;justify-content:space-between;align-items:center'><div><span style='font-size:32px'>" + p["emoji"] + "</span> <b style='font-size:17px'>" + p["nombre"] + "</b><br><span style='color:seagreen;font-size:20px;font-weight:bold'>$" + texto(p["precio"]) + "</span></div><a href='" + link + "' style='background:seagreen;color:white;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:bold'>Pedir por WhatsApp</a></div>"
+    }
+
+    def vista_tienda(slug) {
+        t = este.tiendas[slug]
+        este.visitas[slug] = este.visitas[slug] + 1
+        pedido = "Hola+quiero+pedir+"
+        contenido = "<div style='max-width:900px;margin:0 auto;padding:30px 20px'>"
+        contenido = contenido + "<h1>" + t["emoji"] + " " + t["nombre"] + "</h1>"
+        contenido = contenido + "<p style='color:gray'>Catálogo oficial · Pedidos por WhatsApp · 👀 " + texto(este.visitas[slug]) + " visitas</p>"
+        para p en t["productos"] {
+            contenido = contenido + este.tarjeta(p, t["whatsapp"])
+            pedido = pedido + p["nombre"] + "+"
+        }
+        contenido = contenido + "<div style='text-align:center;margin:20px 0'><a href='https://wa.me/" + t["whatsapp"] + "?text=" + pedido + "' style='background:black;color:white;padding:14px 26px;border-radius:8px;text-decoration:none;font-weight:bold'>🛒 Pedir TODO por WhatsApp</a></div>"
+        contenido = contenido + "<p style='color:gray;font-size:13px;text-align:center'>Creada con NexusShop · Hecha con NexusLang</p></div>"
+        devolver web.pagina(t["nombre"], contenido)
+    }
+
+    def landing() {
+        contenido = "<div style='max-width:900px;margin:0 auto;padding:40px 20px;text-align:center'>"
+        contenido = contenido + "<div style='font-size:60px'>🛒</div>"
+        contenido = contenido + "<h1 style='font-size:44px'>Nexus<span style='color:seagreen'>Shop</span></h1>"
+        contenido = contenido + "<p style='color:gray;font-size:18px'>Tu tienda online en minutos. Sin comisiones. Sin Big Tech.<br>Pedidos directo a tu WhatsApp.</p>"
+        contenido = contenido + "<div style='margin:26px 0'><a href='/tiendas' style='background:seagreen;color:white;padding:14px 30px;border-radius:8px;font-size:16px;font-weight:bold;text-decoration:none'>Ver tiendas en vivo</a></div>"
+        contenido = contenido + "<div style='display:flex;gap:14px;justify-content:center;flex-wrap:wrap'><div style='background:white;border:1px solid lightgray;border-radius:12px;padding:20px;width:220px'><b>GRATIS</b><br><span style='font-size:26px'>$0</span><br><small>10 productos · catálogo WhatsApp</small></div><div style='background:black;color:white;border-radius:12px;padding:20px;width:220px'><b>PRO</b><br><span style='font-size:26px'>$15/mes</span><br><small>ilimitados + dominio propio</small></div><div style='background:white;border:1px solid lightgray;border-radius:12px;padding:20px;width:220px'><b>ENTERPRISE</b><br><span style='font-size:26px'>$49/mes</span><br><small>multi-sucursal + API</small></div></div>"
+        contenido = contenido + "<p style='color:gray;margin-top:26px'>Hecho con NexusLang — el primer lenguaje de programación bilingüe.</p></div>"
+        devolver web.pagina("NexusShop - El Shopify Soberano", contenido)
+    }
+
+    def directorio() {
+        contenido = "<div style='max-width:900px;margin:0 auto;padding:30px 20px'><h1>🛍️ Tiendas en vivo</h1>"
+        para s en este.slugs {
+            t = este.tiendas[s]
+            contenido = contenido + "<a href='/tienda/" + s + "' style='display:block;background:white;border:1px solid lightgray;border-radius:12px;padding:18px;margin:12px 0;text-decoration:none;color:black'><b style='font-size:18px'>" + t["emoji"] + " " + t["nombre"] + "</b> <span style='color:gray'>· " + texto(len(t["productos"])) + " productos · " + texto(este.visitas[s]) + " visitas</span></a>"
+        }
+        contenido = contenido + "</div>"
+        devolver web.pagina("Tiendas - NexusShop", contenido)
+    }
+
+    def datos() {
+        devolver {"plataforma": "NexusShop", "tiendas": len(este.slugs), "motor": "NexusLang 5.3", "soberano": verdadero}
+    }
+}
+
+shop = NexusShop()
+
+// Tiendas sembradas
+shop.crear_tienda("demo", "Tech Store Demo", "542257550650", "💻")
+shop.agregar_producto("demo", "Laptop Pro", 999, "💻")
+shop.agregar_producto("demo", "Mouse Gamer", 29, "🖱️")
+shop.agregar_producto("demo", "Teclado Mecánico", 89, "⌨️")
+
+shop.crear_tienda("lucas", "Nexus Official Store", "542257550650", "🦅")
+shop.agregar_producto("lucas", "Curso NexusLang", 49, "🎓")
+shop.agregar_producto("lucas", "Licencia Pro", 99, "🔑")
+
+shop.crear_tienda("cafe", "Café de Mar", "542257550650", "☕")
+shop.agregar_producto("cafe", "Café Molido 500g", 8, "☕")
+shop.agregar_producto("cafe", "Medialunas x6", 5, "🥐")
+
+// Rutas
+def inicio() => shop.landing()
+def tiendas() => shop.directorio()
+def v_demo() => shop.vista_tienda("demo")
+def v_lucas() => shop.vista_tienda("lucas")
+def v_cafe() => shop.vista_tienda("cafe")
+def api() => shop.datos()
+
+s = web.servidor(8082)
+s.ruta("/", inicio)
+s.ruta("/tiendas", tiendas)
+s.ruta("/tienda/demo", v_demo)
+s.ruta("/tienda/lucas", v_lucas)
+s.ruta("/tienda/cafe", v_cafe)
+s.ruta("/api", api)
+imprimir("✅ NexusShop en http://localhost:8082")
+s.iniciar()

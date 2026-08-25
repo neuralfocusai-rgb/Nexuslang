@@ -1,0 +1,7 @@
+
+def probe() => web.pagina("probe2", "<style>@keyframes pulso { 0% { box-shadow:0 0 6px aqua } 50% { box-shadow:0 0 24px fuchsia } 100% { box-shadow:0 0 6px aqua } }</style><div style='background:black;color:aqua;border:1px solid aqua;border-radius:14px;padding:30px;margin:40px;text-align:center;animation:pulso 2s infinite'>MOTION VIVE · 38% OFF</div>")
+
+s = web.servidor(8098)
+s.ruta("/", probe)
+imprimir("✅ probe2 en http://localhost:8098")
+s.iniciar()

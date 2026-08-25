@@ -222,8 +222,8 @@ class NexusLang:
             get_async = obtener_async
             @staticmethod
             def pagina(titulo, contenido):
-                return f"""<!DOCTYPE html><html><head><meta charset='UTF-8'><title>{titulo}</title>
-<style>body{{font-family:sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:40px;text-align:center}}</style></head>
+                return f"""<!DOCTYPE html><html><head><meta name='viewport' content='width=device-width, initial-scale=1'><meta charset='UTF-8'><title>{titulo}</title>
+<style>body{{font-family:sans-serif;background:linear-gradient(160deg,#05060f,#1a0b2e 55%,#05060f);color:#fff;padding:0;margin:0}}h1{{font-size:22px;padding:14px 16px;margin:0}}.fxbar{{position:sticky;top:0;z-index:98;background:rgba(5,6,15,.94);backdrop-filter:blur(12px)}}.fxcard{{background:rgba(10,12,26,.88);backdrop-filter:blur(8px);border:1px solid rgba(0,255,255,.45);border-radius:16px;box-shadow:0 0 18px rgba(0,255,255,.22)}}.fxcta{{background:linear-gradient(90deg,#00e5ff,#ff2bd6);color:#04050c;animation:pul 2s infinite}}@keyframes pul{{0%,100%{{box-shadow:0 0 10px rgba(0,229,255,.5)}}50%{{box-shadow:0 0 28px rgba(255,43,214,.85)}}}}</style></head>
 <body><h1>{titulo}</h1>{contenido}</body></html>"""
             @staticmethod
             def guardar(nombre, html):
@@ -440,7 +440,7 @@ class ServidorWeb:
                     s.send_response(404)
                     s.end_headers()
             def log_message(s, *a): pass
-        HTTPServer(('localhost', self.puerto), H).serve_forever()
+        HTTPServer(('0.0.0.0', int(__import__('os').environ.get('PORT', self.puerto))), H).serve_forever()
 
 DEMO_CODE = """
 imprimir("🚀 NexusLang v5.3 - Demo en 30 segundos")

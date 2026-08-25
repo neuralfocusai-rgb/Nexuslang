@@ -1,0 +1,45 @@
+
+// NexusShop ADMIN - panel de terminal
+imprimir("🛒 NexusShop ADMIN")
+
+intentar {
+    tiendas = db.nexusshop.tiendas
+    slugs = db.nexusshop.slugs
+} capturar (e) {
+    tiendas = {}
+    slugs = []
+}
+
+mientras (verdadero) {
+    imprimir("1. Nueva tienda · 2. Nuevo producto · 3. Listar · 4. Guardar y salir")
+    op = input("Opcion: ")
+    si (op == "1") {
+        slug = input("slug: ")
+        nombre = input("nombre: ")
+        wa = input("whatsapp: ")
+        emoji = input("emoji: ")
+        tiendas[slug] = {"nombre": nombre, "whatsapp": wa, "emoji": emoji, "estrellas": 5.0, "ventas": 0, "productos": []}
+        slugs = slugs + [slug]
+        imprimir("✅ Tienda creada")
+    }
+    si (op == "2") {
+        slug = input("slug: ")
+        nombre = input("producto: ")
+        precio = int(input("precio: "))
+        emoji = input("emoji: ")
+        cat = input("categoria: ")
+        tiendas[slug]["productos"] = tiendas[slug]["productos"] + [{"nombre": nombre, "precio": precio, "emoji": emoji, "cat": cat, "vendidos": 0, "antes": 0}]
+        imprimir("✅ Producto agregado")
+    }
+    si (op == "3") {
+        para s en slugs {
+            imprimir(s + " -> " + tiendas[s]["nombre"] + " · " + texto(len(tiendas[s]["productos"])) + " productos")
+        }
+    }
+    si (op == "4") {
+        db.nexusshop.tiendas = tiendas
+        db.nexusshop.slugs = slugs
+        imprimir("💾 Guardado. Ahora corré la plataforma.")
+        romper
+    }
+}

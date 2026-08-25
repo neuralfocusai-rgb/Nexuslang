@@ -1,0 +1,266 @@
+
+// NexusShop v1.2 - Produccion
+clase NexusShop {
+    def __init__() {
+        este.tiendas = {}
+        este.slugs = []
+        este.visitas = {}
+        este.admin = "542257550650"
+        imprimir("🛒 NexusShop v1.2 - Produccion")
+    }
+
+    def guardar() {
+        db.nexusshop.tiendas = este.tiendas
+        db.nexusshop.slugs = este.slugs
+    }
+
+    def crear_tienda(slug, nombre, whatsapp, emoji, estrellas, ventas) {
+        este.tiendas[slug] = {"nombre": nombre, "whatsapp": whatsapp, "emoji": emoji, "estrellas": estrellas, "ventas": ventas, "productos": []}
+        este.slugs = este.slugs + [slug]
+        este.visitas[slug] = 0
+    }
+
+    def agregar_producto(slug, nombre, precio, emoji, cat, vendidos, antes) {
+        este.tiendas[slug]["productos"] = este.tiendas[slug]["productos"] + [{"nombre": nombre, "precio": precio, "emoji": emoji, "cat": cat, "vendidos": vendidos, "antes": antes}]
+    }
+
+    def nav() {
+        devolver "<div style='max-width:900px;margin:0 auto;padding:14px 20px;display:flex;gap:14px;flex-wrap:wrap;align-items:center'><a href='/' style='color:white;font-weight:bold;font-size:18px;text-decoration:none'>🛒 Nexus<span style='color:seagreen'>Shop</span></a><a href='/tiendas' style='color:lightgray;text-decoration:none;font-size:14px'>Tiendas</a><a href='/ofertas' style='color:lightgray;text-decoration:none;font-size:14px'>🔥 Ofertas</a><a href='/top' style='color:lightgray;text-decoration:none;font-size:14px'>🏆 Top</a><a href='/vender' style='color:lightgray;text-decoration:none;font-size:14px'>💰 Vender</a><a href='/ayuda' style='color:lightgray;text-decoration:none;font-size:14px'>❓ Ayuda</a><a href='/confianza' style='color:seagreen;text-decoration:none;font-size:14px'>🛡️ Compra Protegida</a></div>"
+    }
+
+    def pie() {
+        devolver "<div style='max-width:900px;margin:0 auto;padding:24px 20px;text-align:center;color:lightgray;font-size:13px'><a href='/nosotros' style='color:lightgray'>Nosotros</a> · <a href='/confianza' style='color:lightgray'>Confianza</a> · <a href='/api' style='color:lightgray'>API</a><br>NexusShop · marketplace argentino · compra protegida</div>"
+    }
+
+    def envolver(titulo, cuerpo) {
+        devolver web.pagina(titulo, este.nav() + cuerpo + este.pie())
+    }
+
+    def tarjeta_ml(p, t) {
+        envio = ""
+        si (p["precio"] >= 50) {
+            envio = " <small style='color:seagreen;font-weight:bold'>· 🚚 Envío gratis</small>"
+        } sino {
+            envio = ""
+        }
+        oferta = ""
+        si (p["antes"] > 0) {
+            oferta = " <small style='color:gray'><s>$" + texto(p["antes"]) + "</s></small> <span style='background:seagreen;color:white;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:bold'>🏷️ OFERTA</span>"
+        }
+        link = "https://wa.me/" + t["whatsapp"] + "?text=Hola+quiero+comprar+" + p["nombre"]
+        devolver "<div style='background:white;color:black;border-radius:12px;padding:16px;margin:10px 0;display:flex;justify-content:space-between;align-items:center'><div><span style='font-size:30px'>" + p["emoji"] + "</span> <b style='color:black;font-size:16px'>" + p["nombre"] + "</b><br><span style='color:seagreen;font-size:22px;font-weight:bold'>$" + texto(p["precio"]) + "</span>" + oferta + envio + "<br><small style='color:gray'>⭐ " + texto(t["estrellas"]) + " · " + texto(p["vendidos"]) + " vendidos · 🛡️ " + t["emoji"] + " " + t["nombre"] + "</small></div><a href='" + link + "' style='background:seagreen;color:white;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:bold'>Comprar / Buy</a></div>"
+    }
+
+    def categoria(cat, titulo) {
+        contenido = "<div style='max-width:900px;margin:0 auto;padding:20px'><h1 style='color:white'>" + titulo + "</h1><p style='color:lightgray'>🛡️ Vendedores verificados · compra protegida</p>"
+        para s en este.slugs {
+            t = este.tiendas[s]
+            para p en t["productos"] {
+                si (p["cat"] == cat) {
+                    contenido = contenido + este.tarjeta_ml(p, t)
+                }
+            }
+        }
+        contenido = contenido + "</div>"
+        devolver este.envolver(titulo, contenido)
+    }
+
+    def vista_tienda(slug) {
+        t = este.tiendas[slug]
+        este.visitas[slug] = este.visitas[slug] + 1
+        pedido = "Hola+quiero+pedir+"
+        contenido = "<div style='max-width:900px;margin:0 auto;padding:20px'>"
+        contenido = contenido + "<h1 style='color:white'>" + t["emoji"] + " " + t["nombre"] + " <small style='color:seagreen'>✓ Verificada</small></h1>"
+        contenido = contenido + "<p style='color:lightgray'>⭐ " + texto(t["estrellas"]) + " · " + texto(t["ventas"]) + " ventas · 👀 " + texto(este.visitas[slug]) + " visitas</p>"
+        contenido = contenido + "<div style='background:black;color:white;border-radius:12px;padding:12px;margin:10px 0;font-size:13px'>🛡️ Compra Protegida: NexusShop nunca te pide claves ni códigos. Pagás directo al vendedor al recibir.</div>"
+        para p en t["productos"] {
+            contenido = contenido + este.tarjeta_ml(p, t)
+            pedido = pedido + p["nombre"] + "+"
+        }
+        contenido = contenido + "<div style='text-align:center;margin:20px 0'><a href='https://wa.me/" + t["whatsapp"] + "?text=" + pedido + "' style='background:black;color:white;padding:14px 26px;border-radius:8px;text-decoration:none;font-weight:bold'>🛒 Pedir TODO por WhatsApp</a></div>"
+        contenido = contenido + "<p style='text-align:center'><a href='https://wa.me/542257550650?text=Quiero+reportar+al+vendedor+" + slug + "' style='color:lightgray;font-size:12px'>⚠️ Reportar vendedor</a></p></div>"
+        devolver este.envolver(t["nombre"], contenido)
+    }
+
+    def landing() {
+        total_prod = 0
+        total_vis = 0
+        para s en este.slugs {
+            total_prod = total_prod + len(este.tiendas[s]["productos"])
+            total_vis = total_vis + este.visitas[s]
+        }
+        contenido = "<div style='max-width:900px;margin:0 auto;padding:30px 20px;text-align:center'>"
+        contenido = contenido + "<div style='font-size:60px'>🛒</div>"
+        contenido = contenido + "<h1 style='font-size:44px;color:white'>Nexus<span style='color:seagreen'>Shop</span></h1>"
+        contenido = contenido + "<p style='color:lightgray;font-size:18px'>Tu tienda propia + el marketplace de confianza.<br>Sin comisiones abusivas. Pedidos por WhatsApp.</p>"
+        contenido = contenido + "<div style='background:black;color:white;border-radius:12px;padding:14px;margin:20px auto;max-width:520px'>📊 EN VIVO: " + texto(len(este.slugs)) + " tiendas · " + texto(total_prod) + " productos · " + texto(total_vis) + " visitas</div>"
+        contenido = contenido + "<div style='background:seagreen;color:white;border-radius:12px;padding:10px;margin:0 auto 20px;max-width:520px;font-size:14px;font-weight:bold'>🛡️ COMPRA PROTEGIDA: nunca te pediremos claves ni códigos</div>"
+        contenido = contenido + "<h2 style='color:white'>🗂️ Categorías</h2>"
+        contenido = contenido + "<div style='display:flex;gap:12px;justify-content:center;flex-wrap:wrap'><a href='/cat/tecnologia' style='background:white;color:black;border-radius:12px;padding:14px 20px;text-decoration:none;font-weight:bold'>💻 Tecnología</a><a href='/cat/alimentos' style='background:white;color:black;border-radius:12px;padding:14px 20px;text-decoration:none;font-weight:bold'>🥐 Alimentos</a><a href='/cat/educacion' style='background:white;color:black;border-radius:12px;padding:14px 20px;text-decoration:none;font-weight:bold'>🎓 Educación</a><a href='/cat/moda' style='background:white;color:black;border-radius:12px;padding:14px 20px;text-decoration:none;font-weight:bold'>👗 Moda</a><a href='/cat/salud' style='background:white;color:black;border-radius:12px;padding:14px 20px;text-decoration:none;font-weight:bold'>🌿 Salud</a></div>"
+        contenido = contenido + "<h2 style='color:white;margin-top:30px'>🔥 Lo más vendido</h2><div style='text-align:left;max-width:700px;margin:0 auto'>"
+        para s en este.slugs {
+            t = este.tiendas[s]
+            para p en t["productos"] {
+                si (p["vendidos"] >= 100) {
+                    contenido = contenido + este.tarjeta_ml(p, t)
+                }
+            }
+        }
+        contenido = contenido + "</div>"
+        contenido = contenido + "<h2 style='color:white;margin-top:30px'>🏪 Vendedores verificados</h2><div style='display:flex;gap:12px;justify-content:center;flex-wrap:wrap'>"
+        para s en este.slugs {
+            t = este.tiendas[s]
+            contenido = contenido + "<a href='/tienda/" + s + "' style='background:white;color:black;border-radius:12px;padding:14px 20px;text-decoration:none'><b>🛡️ " + t["emoji"] + " " + t["nombre"] + "</b><br><small style='color:gray'>⭐ " + texto(t["estrellas"]) + " · ✓ verificado</small></a>"
+        }
+        contenido = contenido + "</div>"
+        contenido = contenido + "<h2 style='color:white;margin-top:30px'>💰 Planes</h2><div style='display:flex;gap:14px;justify-content:center;flex-wrap:wrap'><div style='background:white;color:black;border-radius:12px;padding:20px;width:220px'><b>GRATIS</b><br><span style='font-size:26px'>$0</span><br><small>10 productos · catálogo WhatsApp</small></div><div style='background:black;color:white;border-radius:12px;padding:20px;width:220px'><b>PRO</b><br><span style='font-size:26px'>$15/mes</span><br><small>ilimitados + dominio propio</small></div><div style='background:white;color:black;border-radius:12px;padding:20px;width:220px'><b>ENTERPRISE</b><br><span style='font-size:26px'>$49/mes</span><br><small>multi-sucursal + API</small></div></div></div>"
+        devolver este.envolver("NexusShop - El marketplace de confianza", contenido)
+    }
+
+    def directorio() {
+        contenido = "<div style='max-width:900px;margin:0 auto;padding:20px'><h1 style='color:white'>🛍️ Tiendas verificadas</h1>"
+        para s en este.slugs {
+            t = este.tiendas[s]
+            contenido = contenido + "<a href='/tienda/" + s + "' style='display:block;background:white;color:black;border-radius:12px;padding:18px;margin:12px 0;text-decoration:none'><b style='font-size:18px;color:black'>🛡️ " + t["emoji"] + " " + t["nombre"] + "</b> <span style='color:gray'>· ⭐ " + texto(t["estrellas"]) + " · " + texto(len(t["productos"])) + " productos</span></a>"
+        }
+        contenido = contenido + "</div>"
+        devolver este.envolver("Tiendas - NexusShop", contenido)
+    }
+
+    def ofertas() {
+        contenido = "<div style='max-width:900px;margin:0 auto;padding:20px'><h1 style='color:white'>🔥 Ofertas de la semana</h1>"
+        para s en este.slugs {
+            t = este.tiendas[s]
+            para p en t["productos"] {
+                si (p["antes"] > 0) {
+                    contenido = contenido + este.tarjeta_ml(p, t)
+                }
+            }
+        }
+        contenido = contenido + "</div>"
+        devolver este.envolver("Ofertas - NexusShop", contenido)
+    }
+
+    def top() {
+        contenido = "<div style='max-width:900px;margin:0 auto;padding:20px'><h1 style='color:white'>🏆 Los más vendidos</h1>"
+        para s en este.slugs {
+            t = este.tiendas[s]
+            para p en t["productos"] {
+                si (p["vendidos"] >= 300) {
+                    contenido = contenido + este.tarjeta_ml(p, t)
+                }
+            }
+        }
+        contenido = contenido + "</div>"
+        devolver este.envolver("Top - NexusShop", contenido)
+    }
+
+    def vender() {
+        contenido = "<div style='max-width:900px;margin:0 auto;padding:30px 20px;text-align:center'><h1 style='color:white'>💰 Vendé en NexusShop</h1><p style='color:lightgray;font-size:17px'>Tu tienda propia + el marketplace, sin comisiones el primer mes.</p><div style='display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:20px 0'><div style='background:white;color:black;border-radius:12px;padding:16px;width:220px'><b>🏪 Tu tienda en minutos</b><br><small>con tu WhatsApp como caja</small></div><div style='background:white;color:black;border-radius:12px;padding:16px;width:220px'><b>🛡️ Sello verificado</b><br><small>confianza que vende</small></div><div style='background:white;color:black;border-radius:12px;padding:16px;width:220px'><b>💵 Cobrás vos directo</b><br><small>sin pasarelas ni intermediarios</small></div></div><a href='https://wa.me/542257550650?text=Quiero+mi+tienda+NexusShop' style='background:seagreen;color:white;padding:14px 30px;border-radius:8px;font-weight:bold;text-decoration:none'>Quiero mi tienda GRATIS</a></div>"
+        devolver este.envolver("Vender - NexusShop", contenido)
+    }
+
+    def ayuda() {
+        contenido = "<div style='max-width:900px;margin:0 auto;padding:30px 20px'><h1 style='color:white'>❓ Ayuda</h1><div style='background:white;color:black;border-radius:12px;padding:18px;margin:12px 0'><b>🛒 Cómo comprar / How to buy</b><br>1. Entrá a una tienda o categoría · 2. Tocá Comprar · 3. Coordiná por WhatsApp</div><div style='background:white;color:black;border-radius:12px;padding:18px;margin:12px 0'><b>🏪 Cómo vender / How to sell</b><br>1. Pedí tu tienda por WhatsApp · 2. Cargamos tus productos · 3. Compartí tu link y vendé</div><div style='background:white;color:black;border-radius:12px;padding:18px;margin:12px 0'><b>🚚 Envíos / Shipping</b><br>Cada vendedor coordina el envío por WhatsApp: retiro, cadetería o correo.</div><div style='background:white;color:black;border-radius:12px;padding:18px;margin:12px 0'><b>💵 Pagos / Payments</b><br>Transferencia, efectivo o MercadoPago directo al vendedor. Sin retenciones.</div></div>"
+        devolver este.envolver("Ayuda - NexusShop", contenido)
+    }
+
+    def confianza() {
+        contenido = "<div style='max-width:900px;margin:0 auto;padding:30px 20px'><h1 style='color:white'>🛡️ Compra Protegida</h1><div style='background:white;color:black;border-radius:12px;padding:18px;margin:12px 0'><b>1. Regla de oro</b><br>NexusShop NUNCA te pide claves, códigos ni datos bancarios. Si alguien lo hace en nuestro nombre, reportalo.</div><div style='background:white;color:black;border-radius:12px;padding:18px;margin:12px 0'><b>2. Vendedores verificados</b><br>Cada tienda tiene un WhatsApp real visible, reputación pública y historial de ventas.</div><div style='background:white;color:black;border-radius:12px;padding:18px;margin:12px 0'><b>3. Pagás al recibir</b><br>El pago va directo al vendedor contra entrega o por transferencia confirmada.</div><div style='background:white;color:black;border-radius:12px;padding:18px;margin:12px 0'><b>4. Reportes</b><br>Un botón de reporte en cada tienda. Tres reportes verificables = suspensión inmediata.</div><div style='background:white;color:black;border-radius:12px;padding:18px;margin:12px 0'><b>5. Sin trackers</b><br>Ni Google ni Facebook te espían aquí. Tus compras son tuyas.</div></div>"
+        devolver este.envolver("Compra Protegida - NexusShop", contenido)
+    }
+
+    def nosotros() {
+        contenido = "<div style='max-width:900px;margin:0 auto;padding:30px 20px'><h1 style='color:white'>🇦🇷 Nosotros</h1><div style='background:white;color:black;border-radius:12px;padding:18px;margin:12px 0'>NexusShop nació en Argentina con una misión: que cada comercio de Latinoamérica venda online sin depender de plataformas extranjeras que cobran comisiones abusivas.</div><div style='background:white;color:black;border-radius:12px;padding:18px;margin:12px 0'><b>Por qué WhatsApp</b><br>Porque es donde ya venden millones de comercios. Nosotros no los movemos de ahí: los potenciamos.</div><div style='background:white;color:black;border-radius:12px;padding:18px;margin:12px 0'><b>Por qué soberano</b><br>Tus datos y tus clientes son tuyos. NexusShop corre donde vos quieras.</div></div>"
+        devolver este.envolver("Nosotros - NexusShop", contenido)
+    }
+
+    def datos() {
+        devolver {"plataforma": "NexusShop", "version": "1.2", "estado": "online", "tiendas": len(este.slugs), "categorias": 5, "compra_protegida": verdadero, "soberano": verdadero}
+    }
+}
+
+
+shop = NexusShop()
+
+shop.crear_tienda("nexus", "Nexus Official Store", "542257550650", "🦅", 5.0, 510)
+shop.agregar_producto("nexus", "Curso NexusLang", 49, "🎓", "educacion", 380, 79)
+shop.agregar_producto("nexus", "Licencia Pro", 99, "🔑", "educacion", 130, 0)
+shop.crear_tienda("demo", "Tech Store Demo", "542257550650", "💻", 4.8, 320)
+shop.agregar_producto("demo", "Laptop Pro", 999, "💻", "tecnologia", 150, 1299)
+shop.agregar_producto("demo", "Mouse Gamer", 29, "🖱️", "tecnologia", 400, 0)
+shop.agregar_producto("demo", "Teclado Mecánico", 89, "⌨️", "tecnologia", 120, 0)
+shop.crear_tienda("cafe", "Café de Mar", "542257550650", "☕", 4.9, 980)
+shop.agregar_producto("cafe", "Café Molido 500g", 8, "☕", "alimentos", 850, 10)
+shop.agregar_producto("cafe", "Medialunas x6", 5, "🥐", "alimentos", 1200, 0)
+shop.crear_tienda("almacen", "Almacén Don José", "542257550650", "🏪", 4.7, 640)
+shop.agregar_producto("almacen", "Pan Casero", 3, "🍞", "alimentos", 900, 0)
+shop.agregar_producto("almacen", "Miel 500g", 6, "🍯", "alimentos", 300, 0)
+shop.crear_tienda("boutique", "Boutique Luna", "542257550650", "👗", 4.8, 450)
+shop.agregar_producto("boutique", "Vestido de Lino", 45, "👗", "moda", 220, 60)
+shop.agregar_producto("boutique", "Cartera de Cuero", 80, "👜", "moda", 180, 0)
+shop.crear_tienda("farma", "Farma Natural", "542257550650", "🌿", 4.9, 720)
+shop.agregar_producto("farma", "Melatonina", 12, "🌿", "salud", 500, 15)
+shop.agregar_producto("farma", "Aceite de CBD", 35, "🧴", "salud", 260, 0)
+shop.guardar()
+
+intentar {
+    tmp = db.nexusshop.slugs
+    n = len(tmp)
+    si (n > len(shop.slugs)) {
+        shop.slugs = tmp
+        shop.tiendas = db.nexusshop.tiendas
+        imprimir("📦 DB cargada: " + texto(n) + " tiendas")
+    }
+} capturar (e) {
+    imprimir("🌱 Sembrado en memoria activo")
+}
+
+para s en shop.slugs {
+    shop.visitas[s] = 0
+}
+
+def inicio() => shop.landing()
+def tiendas() => shop.directorio()
+def v_nexus() => shop.vista_tienda("nexus")
+def v_demo() => shop.vista_tienda("demo")
+def v_cafe() => shop.vista_tienda("cafe")
+def v_almacen() => shop.vista_tienda("almacen")
+def v_boutique() => shop.vista_tienda("boutique")
+def v_farma() => shop.vista_tienda("farma")
+def c_tec() => shop.categoria("tecnologia", "💻 Tecnología")
+def c_ali() => shop.categoria("alimentos", "🥐 Alimentos")
+def c_edu() => shop.categoria("educacion", "🎓 Educación")
+def c_mod() => shop.categoria("moda", "👗 Moda")
+def c_sal() => shop.categoria("salud", "🌿 Salud")
+def ofertas() => shop.ofertas()
+def top() => shop.top()
+def vender() => shop.vender()
+def ayuda() => shop.ayuda()
+def confianza() => shop.confianza()
+def nosotros() => shop.nosotros()
+def api() => shop.datos()
+
+s = web.servidor(8094)
+s.ruta("/", inicio)
+s.ruta("/tiendas", tiendas)
+s.ruta("/tienda/nexus", v_nexus)
+s.ruta("/tienda/demo", v_demo)
+s.ruta("/tienda/cafe", v_cafe)
+s.ruta("/tienda/almacen", v_almacen)
+s.ruta("/tienda/boutique", v_boutique)
+s.ruta("/tienda/farma", v_farma)
+s.ruta("/cat/tecnologia", c_tec)
+s.ruta("/cat/alimentos", c_ali)
+s.ruta("/cat/educacion", c_edu)
+s.ruta("/cat/moda", c_mod)
+s.ruta("/cat/salud", c_sal)
+s.ruta("/ofertas", ofertas)
+s.ruta("/top", top)
+s.ruta("/vender", vender)
+s.ruta("/ayuda", ayuda)
+s.ruta("/confianza", confianza)
+s.ruta("/nosotros", nosotros)
+s.ruta("/api", api)
+imprimir("✅ NexusShop v1.2 en http://localhost:8094")
+s.iniciar()

@@ -1,0 +1,7 @@
+
+def probe() => web.pagina("probe", "<body style='background:black;color:aqua;padding:40px;font-family:monospace'><h1>PROBE JS</h1><div id='x'>esperando...</div><script>var n = 1 + 1; var d = document.getElementById('x'); d.innerHTML = 'JS VIVE: ' + String(n) + ' · localStorage: ' + String(typeof localStorage);</script></body>")
+
+s = web.servidor(8096)
+s.ruta("/", probe)
+imprimir("✅ probe en http://localhost:8096")
+s.iniciar()
