@@ -570,8 +570,24 @@ def run_tests():
     return failed == 0
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] in ('--help', '-h', 'help', 'ayuda'):
+        print("NEXUSLANG v%s - lenguaje bilingue (es/en)" % VERSION)
+        print("USO / USAGE:")
+        print("  nexus archivo.nx       ejecutar app / run app")
+        print("  nexus -i               interactivo / interactive REPL")
+        print("  nexus --demo [es|en]   demo bilingue / bilingual demo")
+        print("  nexus --test           probar / run tests")
+        print("  nexus --help           ayuda / help")
+        print("SINTAXIS / SYNTAX:")
+        print("  imprimir|print  clase|class  devolver|return")
+        print("  si|if  sino|else  para|for  mientras|while")
+        sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1] == '--demo':
-        NexusLang().ejecutar(DEMO_CODE)
+        modo = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] in ('es', 'en') else 'es'
+        codigo = DEMO_CODE
+        if modo == 'en':
+            codigo = DEMO_CODE.replace('imprimir(', 'print(').replace('Clases/OOP:', 'Classes/OOP:').replace('Base de datos:', 'Database:').replace('"IA: "', '"AI: "').replace('Demo completo - listo para produccion', 'Demo complete - production ready')
+        NexusLang().ejecutar(codigo)
         sys.exit(0)
     if len(sys.argv) > 1 and sys.argv[1] == '-i':
         print(f"NEXUSLANG v{VERSION} - INTERACTIVE (type 'salir')")
@@ -585,12 +601,21 @@ if __name__ == "__main__":
             if linea.strip() in ['salir', 'exit', 'quit']: break
             buffer += linea + '\n'
             if buffer.count('{') > buffer.count('}'): continue
-            lang.ejecutar(buffer)
+            linea = buffer.strip()
+            es_expr = bool(linea) and '=' not in linea and not linea.startswith('#') and linea.split()[0] not in ('imprimir','print','clase','class','si','if','para','for','mientras','while','devolver','return','async','usar')
+            try:
+                lang.ejecutar('imprimir(' + linea + ')' if es_expr else buffer)
+            except Exception as e:
+                print("⛔ " + type(e).__name__ + ": " + str(e).split('(')[0].strip())
             buffer = ''
     elif len(sys.argv) > 1 and sys.argv[1] != '--test':
         lang = NexusLang()
         with open(sys.argv[1], 'r', encoding='utf-8') as f:
-            lang.ejecutar(f.read())
+            try:
+                lang.ejecutar(f.read())
+            except Exception as e:
+                print("⛔ Error en tu app / in your app -> " + type(e).__name__ + ": " + str(e).split('(')[0].strip())
+                sys.exit(1)
     else:
         ok = run_tests()
         sys.exit(0 if ok else 1)
