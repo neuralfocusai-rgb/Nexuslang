@@ -65,3 +65,7 @@ nexus --test
 ## License
 
 MIT - free for everyone / gratis para todos.
+
+## Nota Linux / Linux note
+Si nexus no aparece tras instalar / if nexus is not found after install:
+export PATH="$HOME/.local/bin:$PATH"
