@@ -12,7 +12,7 @@ from collections import Counter
 import base64, hashlib, uuid
 import urllib.request as urlreq
 
-VERSION = "5.4.0"
+VERSION = "6.0.0"
 
 for d in ["nexus_pages", "nexus_archivos"]:
     os.makedirs(d, exist_ok=True)
@@ -249,6 +249,7 @@ class NexusLang:
     def _traducir(self, linea):
         partes = []
         buf = ''
+        linea = linea.replace(chr(92)+chr(34), chr(1)).replace(chr(92)+chr(39), chr(2))
         quote = None
         for c in linea:
             if quote:
@@ -267,9 +268,10 @@ class NexusLang:
                 for pat, rep in KEYWORDS:
                     part = re.sub(pat, rep, part)
             result += part
-        return result
+        return result.replace(chr(1), chr(92)+chr(34)).replace(chr(2), chr(92)+chr(39))
 
     def _quitar_comentarios(self, linea):
+        linea = linea.replace(chr(92)+chr(34), chr(1)).replace(chr(92)+chr(39), chr(2))
         out = []
         quote = None
         i = 0
@@ -284,7 +286,7 @@ class NexusLang:
             elif c == '/' and i+1 < len(linea) and linea[i+1] == '/': break
             else: out.append(c)
             i += 1
-        return ''.join(out).rstrip()
+        return ''.join(out).replace(chr(1), chr(92)+chr(34)).replace(chr(2), chr(92)+chr(39)).rstrip()
 
     def _strip_types(self, s):
         # Remove type hints: def sumar(a: int, b: int) -> int => a + b
@@ -317,13 +319,25 @@ class NexusLang:
             return re.sub(r'^def\s+\w+\s*\([^)]*\)', f'def {m.group(1)}({new})', line)
         return line
 
+    def _llaves(self, s):
+        s = s.replace(chr(92)+chr(34), chr(1)).replace(chr(92)+chr(39), chr(2))
+        code = ''
+        quote = None
+        for c in s:
+            if quote:
+                if c == quote: quote = None
+            elif c in '"\'': quote = c
+            elif c == '#': break
+            else: code += c
+        return code.count('{') - code.count('}')
+
     def transpilar(self, codigo):
         py = []
         indent = 0
         class_stack = []
         for raw in codigo.split('\n'):
             s = self._quitar_comentarios(raw).strip()
-            if not s: continue
+            if not s: py.append(''); continue
             if s == '}':
                 indent = max(0, indent - 1)
                 while class_stack and indent <= class_stack[-1]:
@@ -567,6 +581,13 @@ def run_tests():
     print(f"RESULT: {passed} passed | {failed} failed | {passed+failed} total")
     print("="*70)
     print("✅ ALL TESTS PASSED - PRODUCTION READY" if failed == 0 else "❌ FIX NEEDED")
+    nx6 = NexusLang()
+    nx6.ejecutar('imprimir("v6a:#{}()")')
+    check('string_blindada', 'v6a:#{}()' in ''.join(nx6.output))
+    nx7 = NexusLang()
+    codigo = 'imprimir("v6b:di' + chr(92) + chr(34) + 'jo")'
+    nx7.ejecutar(codigo)
+    check('escapes', 'v6b:di"jo' in ''.join(nx7.output))
     return failed == 0
 
 if __name__ == "__main__":
@@ -600,7 +621,7 @@ if __name__ == "__main__":
                 print("\nBye!"); break
             if linea.strip() in ['salir', 'exit', 'quit']: break
             buffer += linea + '\n'
-            if buffer.count('{') > buffer.count('}'): continue
+            if self._llaves(buffer) > 0: continue
             linea = buffer.strip()
             es_expr = bool(linea) and '=' not in linea and not linea.startswith('#') and linea.split()[0] not in ('imprimir','print','clase','class','si','if','para','for','mientras','while','devolver','return','async','usar')
             try:
