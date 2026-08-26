@@ -12,7 +12,7 @@ from collections import Counter
 import base64, hashlib, uuid
 import urllib.request as urlreq
 
-VERSION = "6.1.0"
+VERSION = "6.2.0"
 
 for d in ["nexus_pages", "nexus_archivos"]:
     os.makedirs(d, exist_ok=True)
@@ -460,12 +460,29 @@ class ServidorWeb:
     def __init__(self, puerto=8080):
         self.puerto = puerto
         self.rutas = {}
+        self._datos = {}
+    def recibir_datos(self):
+        return self._datos
+    def redirigir(self, ruta):
+        return 'REDIRIGIR:' + ruta
+    def _parsear(self, cuerpo):
+        datos = {}
+        try:
+            if cuerpo.strip().startswith('{'):
+                datos = json.loads(cuerpo)
+            else:
+                from urllib.parse import unquote_plus
+                datos = {k: unquote_plus(v) for k, v in (p.split('=', 1) for p in cuerpo.split('&') if '=' in p)}
+        except Exception:
+            pass
+        return datos
     def ruta(self, path, funcion):
         self.rutas[path] = funcion
         return f"Ruta {path} registrada"
     def iniciar(self):
         from http.server import HTTPServer, BaseHTTPRequestHandler
         rutas = self.rutas
+        serv = self
         class H(BaseHTTPRequestHandler):
             def do_GET(s):
                 if s.path in rutas:
@@ -480,6 +497,24 @@ class ServidorWeb:
                         s.send_header('Content-Type', 'application/json')
                         s.end_headers()
                         s.wfile.write(json.dumps(r, ensure_ascii=False).encode())
+                else:
+                    s.send_response(404)
+                    s.end_headers()
+            def do_POST(s):
+                n = int(s.headers.get('Content-Length', 0))
+                cuerpo = s.rfile.read(n).decode('utf-8') if n else ''
+                serv._datos = serv._parsear(cuerpo)
+                if s.path in rutas:
+                    r = rutas[s.path]()
+                    if isinstance(r, str) and r.startswith('REDIRIGIR:'):
+                        s.send_response(302)
+                        s.send_header('Location', r[10:])
+                        s.end_headers()
+                        return
+                    s.send_response(200)
+                    s.send_header('Content-Type', 'text/html; charset=utf-8')
+                    s.end_headers()
+                    s.wfile.write(str(r).encode())
                 else:
                     s.send_response(404)
                     s.end_headers()
@@ -630,6 +665,14 @@ def run_tests():
     nxb = NexusLang()
     nxb.ejecutar('usar "nx_temp_mod.nx"\nimprimir(doble(21))')
     check('modulos', '42' in ''.join(nxb.output))
+    nxc = ServidorWeb()
+    d = nxc._parsear('nombre=Lucas&tienda=Mi%20Shop')
+    check('post_form', d.get('tienda') == 'Mi Shop')
+    nxd = ServidorWeb()
+    check('redirigir', nxd.redirigir('/ok') == 'REDIRIGIR:/ok')
+    nxe = ServidorWeb()
+    dj = nxe._parsear('{"a": 1}')
+    check('post_json', dj.get('a') == 1)
     return failed == 0
 
 if __name__ == "__main__":
