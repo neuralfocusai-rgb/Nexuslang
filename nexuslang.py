@@ -12,7 +12,7 @@ from collections import Counter
 import base64, hashlib, uuid
 import urllib.request as urlreq
 
-VERSION = "5.3.0"
+VERSION = "5.4.0"
 
 for d in ["nexus_pages", "nexus_archivos"]:
     os.makedirs(d, exist_ok=True)
