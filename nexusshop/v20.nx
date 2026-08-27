@@ -316,16 +316,16 @@ para s en shop.slugs {
     shop.visitas[s] = 0
 }
 
-def inicio() => shop.landing()
-def buscar() => shop.buscar()
-def tiendas() => shop.directorio()
-def beneficios() => shop.beneficios()
-def v_nexus() => shop.vista_tienda("nexus")
-def v_demo() => shop.vista_tienda("demo")
-def v_cafe() => shop.vista_tienda("cafe")
-def v_almacen() => shop.vista_tienda("almacen")
-def v_boutique() => shop.vista_tienda("boutique")
-def v_farma() => shop.vista_tienda("farma")
+def inicio() => T(shop.landing())
+def buscar() => T(shop.buscar())
+def tiendas() => T(shop.directorio())
+def beneficios() => T(shop.beneficios())
+def v_nexus() => T(shop.vista_tienda("nexus"))
+def v_demo() => T(shop.vista_tienda("demo"))
+def v_cafe() => T(shop.vista_tienda("cafe"))
+def v_almacen() => T(shop.vista_tienda("almacen"))
+def v_boutique() => T(shop.vista_tienda("boutique"))
+def v_farma() => T(shop.vista_tienda("farma"))
 def k_nexus0() => shop.comprar("nexus", 0)
 def k_nexus1() => shop.comprar("nexus", 1)
 def k_demo0() => shop.comprar("demo", 0)
@@ -344,14 +344,14 @@ def c_ali() => shop.categoria("alimentos", "🥐 Alimentos")
 def c_edu() => shop.categoria("educacion", "🎓 Educación")
 def c_mod() => shop.categoria("moda", "👗 Moda")
 def c_sal() => shop.categoria("salud", "🌿 Salud")
-def top() => shop.top()
-def envios() => shop.envios()
-def vender() => shop.vender()
-def ayuda() => shop.ayuda()
-def confianza() => shop.confianza()
-def terminos() => shop.terminos()
-def privacidad() => shop.privacidad()
-def nosotros() => shop.nosotros()
+def top() => T(shop.top())
+def envios() => T(shop.envios())
+def vender() => T(shop.vender())
+def ayuda() => T(shop.ayuda())
+def confianza() => T(shop.confianza())
+def terminos() => T(shop.terminos())
+def privacidad() => T(shop.privacidad())
+def nosotros() => T(shop.nosotros())
 def api() => shop.datos()
 
 s = web.servidor(8104)
@@ -393,6 +393,15 @@ s.ruta("/privacidad", privacidad)
 s.ruta("/nosotros", nosotros)
 s.ruta("/api", api)
 imprimir("✅ NexusShop v1.8 en http://localhost:8104")
+def T(html) {
+    si s.parametro("lang") != "en" {
+        devolver html
+    }
+    html = html.replace("Pedir por WhatsApp", "Order via WhatsApp").replace("Creá tu tienda", "Create your store").replace("Crear tienda gratis", "Create free store").replace("Nombre de la tienda", "Store name").replace("Tu WhatsApp (con código de país)", "Your WhatsApp (with country code)").replace(" productos</p>", " products</p>").replace("Tecnologia", "Technology").replace("Alimentos", "Food").replace("Educación", "Education").replace("Moda", "Fashion").replace("Salud", "Health").replace("Envíos", "Shipping").replace("Ayuda", "Help").replace("Confianza", "Trust").replace("Privacidad", "Privacy").replace("Nosotros", "About us").replace("Beneficios", "Benefits")
+    html = html.replace("</body>", "<div style='position:fixed;bottom:0;left:0;right:0;background:#0a0a0f;border-top:1px solid #2a2a3a;padding:10px;text-align:center;z-index:99'><a href='?lang=es' style='color:#fff;text-decoration:none;margin:0 10px'>🇪🇸 ES</a><a href='?lang=en' style='color:#00d4ff;text-decoration:none;margin:0 10px'>🇬 EN</a></div></body>")
+    devolver html
+}
+
 def pagina_crear() {
     devolver """<!DOCTYPE html>
 <html><head><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -429,10 +438,10 @@ def crear_ok() {
     slug = nombre.replace(" ", "-").lower()
     shop.crear_tienda(slug, nombre, wa, "🛒", "5.0", 0, "coordinado")
     shop.guardar()
-    s.ruta("/comprar/" + slug, lambda sl=slug: pagina_tienda_nueva(sl))
+    s.ruta("/comprar/" + slug, lambda sl=slug: T(pagina_tienda_nueva(sl)))
     devolver s.redirigir("/comprar/" + slug)
 }
 
-s.ruta("/crear", pagina_crear)
+s.ruta("/crear", lambda: T(pagina_crear()))
 s.ruta("/crear-ok", crear_ok)
 s.iniciar()
