@@ -12,7 +12,7 @@ from collections import Counter
 import base64, hashlib, uuid
 import urllib.request as urlreq
 
-VERSION = "6.2.0"
+VERSION = "6.3.0"
 
 for d in ["nexus_pages", "nexus_archivos"]:
     os.makedirs(d, exist_ok=True)
@@ -459,6 +459,8 @@ class ServidorWeb:
         self.puerto = puerto
         self.rutas = {}
         self._datos = {}
+    def parametro(self, nombre):
+        return getattr(self, '_query', {}).get(nombre)
     def recibir_datos(self):
         return self._datos
     def redirigir(self, ruta):
@@ -483,8 +485,16 @@ class ServidorWeb:
         serv = self
         class H(BaseHTTPRequestHandler):
             def do_GET(s):
-                if s.path in rutas:
-                    r = rutas[s.path]()
+                serv._query = {}
+                ruta = s.path
+                if '?' in ruta:
+                    ruta, qs = ruta.split('?', 1)
+                    for kv in qs.split('&'):
+                        if '=' in kv:
+                            k, v = kv.split('=', 1)
+                            serv._query[k] = v
+                if ruta in rutas:
+                    r = rutas[ruta]()
                     if es_html(r):
                         s.send_response(200)
                         s.send_header('Content-Type', 'text/html; charset=utf-8')
