@@ -360,8 +360,6 @@ class NexusLang:
                 if raw.count(q) % 2 == 1: tq = q; break
             if tq:
                 in_triple = tq
-                py.append(raw)
-                continue
             mu = re.match(r'^usar\s+["\'](.+?)["\']$', raw.strip())
             if mu:
                 py.append(raw[:len(raw) - len(raw.lstrip())] + 'usar("' + mu.group(1) + '")')
