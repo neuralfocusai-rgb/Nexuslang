@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navegador Cóndor-Dragón</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        .subtitle {
+            text-align: center;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            font-size: 1em;
+        }
+        input::placeholder, textarea::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: monospace;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .success { border-left: 4px solid #4ade80; }
+        .error { border-left: 4px solid #f87171; }
+        .flags {
+            text-align: center;
+            font-size: 1.5em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐉 Cóndor-Dragón</h1>
+        <p class="subtitle">Navegador Soberano - NexusBase v1.0</p>
+        
+        <div class="input-group">
+            <label for="comando">Comando NexusLang:</label>
+            <textarea id="comando" placeholder='GUARDAR USUARIO:arg_001 DATO:empresa VALOR:"Tech Argentina"'></textarea>
+        </div>
+        
+        <button onclick="ejecutarComando()">🚀 Ejecutar Comando</button>
+        
+        <div id="respuesta" class="response" style="display:none;"></div>
+        
+        <div class="flags">🇦🇷 🤝 🇳</div>
+    </div>
+
+    <script>
+        async function ejecutarComando() {
+            const comando = document.getElementById('comando').value.trim();
+            const respuestaDiv = document.getElementById('respuesta');
+            
+            if (!comando) {
+                alert('Por favor escribe un comando');
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:8080/api/nexus', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        comando_nexus: comando
+                    })
+                });
+                
+                const data = await response.json();
+                respuestaDiv.style.display = 'block';
+                respuestaDiv.textContent = JSON.stringify(data, null, 2);
+                
+                if (data.estado === 'exito') {
+                    respuestaDiv.className = 'response success';
+                } else {
+                    respuestaDiv.className = 'response error';
+                }
+            } catch (error) {
+                respuestaDiv.style.display = 'block';
+                respuestaDiv.className = 'response error';
+                respuestaDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

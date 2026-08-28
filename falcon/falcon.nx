@@ -1,0 +1,128 @@
+# ==========================================
+# FALCON SEARCH v0.6 - The Sovereign Search
+# Google-grade UX, sovereign soul.
+# Built 100% with NexusLang
+# ==========================================
+importar web
+importar json
+importar ia
+
+clase FalconSearch {
+  def __init__() {
+    este.lema = "See everything. Track nothing."
+    db.falcon.stats = {"busquedas": 0, "soberano": verdadero}
+    imprimir("🦅 FalconSearch v0.6 - The Sovereign Search")
+  }
+
+  def colores(theme) {
+    si theme == "dark" {
+      devolver {"bg": "#0f1419", "text": "#e8eaed", "muted": "#9aa0a6", "card": "#171d26", "border": "#2a3240", "link": "#8ab4f8", "url": "#8ab4f8", "chip": "#171d26", "input": "#171d26"}
+    }
+    devolver {"bg": "#ffffff", "text": "#202124", "muted": "#5f6368", "card": "#ffffff", "border": "#dfe1e5", "link": "#0b57d0", "url": "#188038", "chip": "#f1f3f4", "input": "#ffffff"}
+  }
+
+  def head(c, titulo) {
+    devolver "<!DOCTYPE html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>" + titulo + "</title></head><body style='margin:0;background:" + c["bg"] + ";color:" + c["text"] + ";font-family:Arial,system-ui,sans-serif'>"
+  }
+
+  def barra(q, c, theme) {
+    devolver "<form action='/buscar' style='flex:1'><input type='hidden' name='t' value='" + theme + "'><div style='display:flex;align-items:center;gap:10px;border:1px solid " + c["border"] + ";border-radius:28px;padding:10px 18px;background:" + c["input"] + "'>🔍<input name='q' value='" + q + "' style='flex:1;border:none;outline:none;font-size:16px;background:transparent;color:" + c["text"] + "'></div></form>"
+  }
+
+  def buscar_wikipedia_es(q) {
+    datos = json_parsear(web.obtener("https://es.wikipedia.org/w/api.php?action=query&list=search&srsearch=" + q + "&format=json"))
+    r = []
+    para item en datos["query"]["search"] {
+      r.agregar({"titulo": item["title"], "desc": "Enciclopedia libre en español", "url": "https://es.wikipedia.org/wiki/" + item["title"], "fuente": "🇪🇸 Wikipedia"})
+    }
+    devolver r
+  }
+
+  def buscar_wikipedia_en(q) {
+    datos = json_parsear(web.obtener("https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=" + q + "&format=json"))
+    r = []
+    para item en datos["query"]["search"] {
+      r.agregar({"titulo": item["title"], "desc": "The free encyclopedia", "url": "https://en.wikipedia.org/wiki/" + item["title"], "fuente": "🇬 Wikipedia"})
+    }
+    devolver r
+  }
+
+  def buscar_duckduckgo(q) {
+    datos = json_parsear(web.obtener("https://api.duckduckgo.com/?q=" + q + "&format=json&no_html=1"))
+    r = []
+    si datos["AbstractText"] != "" {
+      r.agregar({"titulo": datos["Heading"], "desc": datos["AbstractText"], "url": datos["AbstractURL"], "fuente": "🦆 DuckDuckGo"})
+    }
+    devolver r
+  }
+
+  def buscar(q) {
+    todos = []
+    intentar { todos = todos + este.buscar_wikipedia_es(q) } capturar (e) { imprimir("⚠️ ES offline") }
+    intentar { todos = todos + este.buscar_wikipedia_en(q) } capturar (e) { imprimir("⚠️ EN offline") }
+    intentar { todos = todos + este.buscar_duckduckgo(q) } capturar (e) { imprimir("⚠️ DDG offline") }
+    devolver todos
+  }
+
+  def relacionadas(q) {
+    intentar {
+      datos = json_parsear(web.obtener("https://es.wikipedia.org/w/api.php?action=opensearch&search=" + q + "&limit=6&format=json"))
+      devolver datos[1]
+    } capturar (e) { devolver [] }
+  }
+
+  def home(theme) {
+    c = este.colores(theme)
+    html = este.head(c, "Falcon Search")
+    html = html + "<div style='min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px'>"
+    html = html + "<div style='font-size:72px'>🦅</div>"
+    html = html + "<div style='font-size:46px;font-weight:bold;letter-spacing:-1px'><span style='color:#f59e0b'>F</span><span style='color:#0b57d0'>a</span><span style='color:#188038'>l</span><span style='color:#ea4335'>c</span><span style='color:#0b57d0'>o</span><span style='color:#f59e0b'>n</span></div>"
+    html = html + "<div style='color:" + c["muted"] + ";margin:8px 0 26px;font-size:15px'>" + este.lema + "</div>"
+    html = html + "<form action='/buscar'><input type='hidden' name='t' value='" + theme + "'><div style='display:flex;align-items:center;gap:10px;width:100%;max-width:580px;border:1px solid " + c["border"] + ";border-radius:28px;padding:12px 18px;background:" + c["input"] + "'>🔍<input name='q' autofocus placeholder='Search the sovereign web...' style='flex:1;border:none;outline:none;font-size:16px;background:transparent;color:" + c["text"] + "'></div><div style='margin-top:26px;display:flex;gap:12px;justify-content:center'><button style='background:" + c["chip"] + ";border:1px solid " + c["border"] + ";border-radius:6px;color:" + c["text"] + ";padding:9px 18px;font-size:14px'>Falcon Search</button><button style='background:" + c["chip"] + ";border:1px solid " + c["border"] + ";border-radius:6px;color:" + c["text"] + ";padding:9px 18px;font-size:14px'>I'm Feeling Sovereign</button></div></form>"
+    html = html + "</div></body></html>"
+    devolver html
+  }
+
+  def resultados(q, theme) {
+    c = este.colores(theme)
+    res = este.buscar(q)
+    rel = este.relacionadas(q)
+    ai = ia.sentimiento(q)
+    otro = "dark"
+    si theme == "dark" { otro = "light" }
+    html = este.head(c, q + " - Falcon Search")
+    html = html + "<div style='max-width:1100px;margin:0 auto;padding:0 20px'>"
+    html = html + "<div style='display:flex;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid " + c["border"] + "'><a href='/?t=" + theme + "' style='font-size:28px'>🦅</a>" + este.barra(q, c, theme) + "<a href='/buscar?q=" + q + "&t=" + otro + "' style='color:" + c["link"] + ";font-size:13px'>🌙 " + otro + "</a></div>"
+    html = html + "<div style='color:" + c["muted"] + ";font-size:13px;margin:14px 0 22px'>" + texto(len(res)) + " sovereign results · 3 sources · no logs · no trackers</div>"
+    html = html + "<div style='display:flex;gap:36px;flex-wrap:wrap'><div style='flex:1;min-width:300px'>"
+    para r en res {
+      html = html + "<div style='margin-bottom:28px;max-width:620px'><div style='color:" + c["url"] + ";font-size:13px'>" + r["url"] + "<span style='display:inline-block;background:" + c["chip"] + ";border-radius:12px;padding:2px 10px;font-size:12px;color:" + c["muted"] + ";margin-left:6px'>" + r["fuente"] + "</span></div><h3 style='font-size:20px;margin:2px 0 4px'><a href='" + r["url"] + "' style='color:" + c["link"] + "'>" + r["titulo"] + "</a></h3><p style='font-size:14px;line-height:1.55;color:" + c["muted"] + "'>" + r["desc"] + "</p></div>"
+    }
+    html = html + "<div style='margin:20px 0'><b>Related:</b><br>"
+    para t en rel {
+      html = html + "<a href='/buscar?q=" + t + "&t=" + theme + "' style='display:inline-block;background:" + c["chip"] + ";border-radius:16px;padding:6px 14px;margin:4px 6px 4px 0;color:" + c["link"] + ";font-size:13px'>" + t + "</a>"
+    }
+    html = html + "</div></div>"
+    html = html + "<div style='width:320px'><div style='border:1px solid " + c["border"] + ";border-radius:12px;padding:18px;background:" + c["card"] + "'><span style='display:inline-block;background:#f59e0b;color:#111;border-radius:12px;padding:3px 12px;font-size:12px;font-weight:bold'>🦅 SOVEREIGN AI</span><h3 style='margin:12px 0 6px'>" + q + "</h3><p style='font-size:14px;line-height:1.5'>Nexus AI insight: " + texto(ai) + "</p><hr style='margin:12px 0'><p style='font-size:13px;color:" + c["muted"] + "'>Falcon never logs your searches. Your data stays yours. Built with NexusLang.</p><p style='font-size:13px;margin-top:8px'>🔎 Total sovereign searches: " + texto(db.falcon.stats.busquedas) + "</p></div></div></div>"
+    html = html + "<div style='color:" + c["muted"] + ";font-size:13px;padding:26px 0;text-align:center'>🦅 FalconSearch — See everything. Track nothing. · Powered by NexusLang</div></div></body></html>"
+    devolver html
+  }
+}
+
+motor = FalconSearch()
+servidor = web.servidor(8080)
+
+servidor.ruta("/", funcion(params) {
+  theme = "light"
+  si params["t"] == "dark" { theme = "dark" }
+  devolver web.pagina(motor.home(theme))
+})
+
+servidor.ruta("/buscar", funcion(params) {
+  theme = "light"
+  si params["t"] == "dark" { theme = "dark" }
+  db.falcon.stats.busquedas = db.falcon.stats.busquedas + 1
+  devolver web.pagina(motor.resultados(params["q"], theme))
+})
+
+imprimir("✅ FalconSearch en http://localhost:8080")

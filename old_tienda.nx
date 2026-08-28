@@ -1,0 +1,4 @@
+def pagina_tienda_nueva(sl) {
+    t = shop.tiendas[sl]
+    devolver "<html><head><meta name='viewport' content='width=device-width,initial-scale=1'></head><body style='background:#0a0a0f;color:#e0e0e0;font-family:system-ui;padding:20px'><h1 style='color:#00d4ff'>" + t["emoji"] + " " + t["nombre"] + "</h1><p>⭐ " + t["estrellas"] + " · " + texto(len(t["productos"])) + " productos</p><a href='https://wa.me/" + t["whatsapp"] + "' style='color:#0f0'>💬 Pedir por WhatsApp</a></body></html>"
+}

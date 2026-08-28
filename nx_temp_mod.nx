@@ -1,0 +1,1 @@
+def doble(n) => n * 2
