@@ -12,7 +12,7 @@ from collections import Counter
 import base64, hashlib, uuid
 import urllib.request as urlreq
 
-VERSION = "6.3.0"
+VERSION = "7.0.0"
 
 for d in ["nexus_pages", "nexus_archivos"]:
     os.makedirs(d, exist_ok=True)
@@ -51,15 +51,32 @@ class IA:
 
 # ==================== DATABASE ====================
 class DB:
-    def __init__(self): object.__setattr__(self, '_data', {})
+    def __init__(self): object.__setattr__(self, '_data', _db_load())
     def __getattr__(self, name): return DBPath(self._data, [name])
     def guardar(self):
         with open("nexus_db.json", 'w', encoding='utf-8') as f:
             json.dump(self._data, f, indent=2, ensure_ascii=False)
         return "DB saved"
 
+import json as _json
+import os as _os
+_NEXUS_DB_FILE = _os.environ.get('NEXUS_DB', 'nexus_db.json')
+def _db_load():
+    if _os.path.exists(_NEXUS_DB_FILE):
+        try:
+            return _json.load(open(_NEXUS_DB_FILE, encoding='utf-8'))
+        except Exception:
+            return {}
+    return {}
+def _db_flush(data):
+    try:
+        _json.dump(data, open(_NEXUS_DB_FILE, 'w', encoding='utf-8'), ensure_ascii=False)
+    except Exception:
+        pass
 class DBPath:
     def __init__(self, data, path):
+        if not path:
+            data = _db_load() or data
         object.__setattr__(self, '_data', data)
         object.__setattr__(self, '_path', path)
     def __getattr__(self, name): return DBPath(self._data, self._path + [name])
@@ -75,6 +92,7 @@ class DBPath:
             else:
                 if not isinstance(actual.get(parte), dict): actual[parte] = {}
                 actual = actual[parte]
+        _db_flush(self._data)
     def _get(self):
         actual = self._data
         for parte in self._path:

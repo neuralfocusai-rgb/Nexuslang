@@ -1,0 +1,15 @@
+[
+  {
+    "timestamp": "2026-08-20T23:29:12.477677",
+    "event": "CREATE_USER",
+    "user": "Lucas1208",
+    "details": ""
+  },
+  {
+    "timestamp": "2026-08-20T23:56:56.956902",
+    "event": "USER_CREATED",
+    "user": "Panza1201",
+    "details": "Role: user",
+    "ip": "localhost"
+  }
+]

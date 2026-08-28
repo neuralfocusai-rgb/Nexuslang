@@ -1,0 +1,88 @@
+import os
+import json
+import re
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
+# ==========================================
+# CONFIGURACIÓN SOBERANA (NexusBase)
+# ==========================================
+DIRECTORIO_DATOS = "nexus_data"
+if not os.path.exists(DIRECTORIO_DATOS):
+    os.makedirs(DIRECTORIO_DATOS)
+
+# ==========================================
+# MOTOR DEL LENGUAJE (NexusLang v1)
+# ==========================================
+def interpretar_nexus_lang(comando):
+    patron = r"^(GUARDAR)\s+USUARIO:([\w\d_]+)\s+DATO:([\w\d_]+)\s+VALOR:\"(.+?)\"$"
+    coincidencia = re.match(patron, comando.strip())
+    
+    if not coincidencia:
+        return {"estado": "error", "mensaje": "Sintaxis de NexusLang inválida. Usa: GUARDAR USUARIO:id DATO:clave VALOR:\"valor\""}
+    
+    accion, usuario, dato, valor = coincidencia.groups()
+    
+    if not re.match(r"^[\w\d_]+$", usuario):
+        return {"estado": "error", "mensaje": "ID de usuario contiene caracteres ilegales por seguridad."}
+
+    carpeta_usuario = os.path.join(DIRECTORIO_DATOS, usuario)
+    if not os.path.exists(carpeta_usuario):
+        os.makedirs(carpeta_usuario)
+    
+    archivo_datos = os.path.join(carpeta_usuario, "datos.json")
+    
+    if os.path.exists(archivo_datos):
+        with open(archivo_datos, "r", encoding="utf-8") as f:
+            datos = json.load(f)
+    else:
+        datos = {}
+    
+    datos[dato] = valor
+    with open(archivo_datos, "w", encoding="utf-8") as f:
+        json.dump(datos, f, indent=4, ensure_ascii=False)
+    
+    return {"estado": "exito", "mensaje": f"Dato '{dato}' guardado de forma soberana para {usuario}"}
+
+# ==========================================
+# SERVIDOR WEB (API REST Soberana)
+# ==========================================
+class NexusHandler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        if self.path == "/api/nexus":
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length).decode('utf-8')
+            
+            try:
+                solicitud = json.loads(post_data)
+                comando = solicitud.get("comando_nexus", "")
+                
+                resultado = interpretar_nexus_lang(comando)
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json; charset=utf-8')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps(resultado, ensure_ascii=False).encode('utf-8'))
+                
+            except Exception as e:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(json.dumps({"estado": "error", "mensaje": str(e)}).encode('utf-8'))
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def log_message(self, format, *args):
+        pass
+
+# ==========================================
+# INICIALIZACIÓN DEL SISTEMA
+# ==========================================
+if __name__ == "__main__":
+    PUERTO = 8080
+    servidor = HTTPServer(('localhost', PUERTO), NexusHandler)
+    print(f"🚀 NEXUS CORE v1.0 INICIADO")
+    print(f"🇷🤝🇨 Sistema Soberano Activo en http://localhost:{PUERTO}/api/nexus")
+    print(f"📱 Prueba enviando un POST con: {{'comando_nexus': 'GUARDAR USUARIO:clinica_01 DATO:nombre VALOR:\"Clinica Central\"'}}")
+    servidor.serve_forever()
+

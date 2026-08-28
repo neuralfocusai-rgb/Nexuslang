@@ -1,0 +1,11 @@
+{
+  "Panza1201": {
+    "password": "af4e5df41b41e0d0c32dd0ba8b84117c9907c166c6b958e4e70f9535fb235396",
+    "salt": "87a1b17287482392eec676f58316053b11692147e30bf02d36ab6201b1586ab5",
+    "email": "neuralfocusai@gmail.com",
+    "role": "user",
+    "created": "2026-08-20T23:56:56.945070",
+    "last_login": "2026-08-20T23:57:11.736265",
+    "active": true
+  }
+}

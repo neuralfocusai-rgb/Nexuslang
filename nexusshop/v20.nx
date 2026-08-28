@@ -2,8 +2,20 @@
 // NexusShop v1.8 - Mobile real + honesto
 clase NexusShop {
     def __init__() {
-        este.tiendas = {}
-        este.slugs = []
+        cargado = db.nexusshop.tiendas.get()
+        si cargado == None {
+            este.tiendas = {}
+        }
+        si cargado != None {
+            este.tiendas = dict(cargado)
+        }
+        cargado_s = db.nexusshop.slugs.get()
+        si cargado_s == None {
+            este.slugs = []
+        }
+        si cargado_s != None {
+            este.slugs = list(cargado_s)
+        }
         este.visitas = {}
         este.admin = "542257550650"
         imprimir("📱 NexusShop v1.8 - Mobile real + honesto")
@@ -441,6 +453,8 @@ def pagina_panel() {
     html = html + "<input name='emoji' placeholder='Emoji (ej: 🍕)' style='padding:12px;background:#1a1a2a;border:1px solid #2a2a3a;border-radius:8px;color:#fff'>"
     html = html + "<input name='foto' placeholder='URL de foto (opcional)' style='padding:12px;background:#1a1a2a;border:1px solid #2a2a3a;border-radius:8px;color:#fff'>"
     html = html + "<button style='padding:14px;background:linear-gradient(135deg,#00d4ff,#0088cc);border:none;border-radius:8px;color:#000;font-weight:700'>Publicar producto</button></form>"
+    html = html + "<h2 style='color:#00d4ff'>💳 Tu link de pago</h2>"
+    html = html + "<form method='POST' action='/panel-pago' style='display:flex;gap:8px;max-width:400px'><input type='hidden' name='slug' value='" + slug + "'><input type='hidden' name='pin' value='" + pin + "'><input name='pago' placeholder='https://mpago.la/tu-link' style='flex:1;padding:10px;background:#1a1a2a;border:1px solid #2a2a3a;border-radius:8px;color:#fff'><button style='padding:10px;background:#0f0;border:none;border-radius:8px;color:#000;font-weight:700'>Guardar</button></form>"
     html = html + "<h2 style='color:#00d4ff'>📦 Tu catálogo (" + texto(len(t["productos"])) + ")</h2>"
     i = 0
     lista = ""
@@ -468,6 +482,18 @@ def panel_agregar() {
     si foto != "" {
         shop.tiendas[slug]["productos"][-1]["foto"] = foto
     }
+    shop.guardar()
+    devolver s.redirigir("/panel?slug=" + slug + "&pin=" + pin)
+}
+
+def panel_pago() {
+    d = s.recibir_datos()
+    slug = d.get("slug", "")
+    pin = d.get("pin", "")
+    si pin_ok(slug, pin) == 0 {
+        devolver s.redirigir("/panel")
+    }
+    shop.tiendas[slug]["pago"] = d.get("pago", "")
     shop.guardar()
     devolver s.redirigir("/panel?slug=" + slug + "&pin=" + pin)
 }
@@ -569,6 +595,9 @@ def pagina_tienda_nueva(sl) {
     html = html + "<h1 style='color:#00d4ff'>" + t["emoji"] + " " + t["nombre"] + "</h1>"
     html = html + "<p>⭐ " + promedio_estrellas(sl) + " · " + texto(len(t["productos"])) + " productos</p>"
     html = html + "<a href='https://wa.me/" + t["whatsapp"] + "' style='color:#0f0'>💬 Pedir por WhatsApp</a>"
+    si t.get("pago", "") != "" {
+        html = html + " <a href='" + t["pago"] + "' style='color:#00d4ff;margin-left:10px'>💳 Pagar online</a>"
+    }
     i = 0
     mientras i < len(t["productos"]) {
         p = t["productos"][i]
@@ -601,10 +630,29 @@ def crear_ok() {
     devolver s.redirigir("/panel?slug=" + slug + "&pin=" + pin)
 }
 
+i = 0
+mientras i < len(shop.slugs) {
+    sl = shop.slugs[i]
+    si sl != "nexus" {
+        si sl != "demo" {
+            si sl != "cafe" {
+                si sl != "almacen" {
+                    si sl != "boutique" {
+                        si sl != "farma" {
+                            s.ruta("/comprar/" + sl, lambda sl2=sl: T(pagina_tienda_nueva(sl2)))
+                        }
+                    }
+                }
+            }
+        }
+    }
+    i = i + 1
+}
 s.ruta("/crear", lambda: T(pagina_crear()))
 s.ruta("/panel", lambda: T(pagina_panel()))
 s.ruta("/panel-agregar", panel_agregar)
 s.ruta("/buscar", lambda: T(pagina_buscar()))
 s.ruta("/resenar", resenar)
+s.ruta("/panel-pago", panel_pago)
 s.ruta("/crear-ok", crear_ok)
 s.iniciar()

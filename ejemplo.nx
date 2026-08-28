@@ -1,0 +1,12 @@
+// MI PRIMER PROGRAMA NEXUSLANG
+imprimir "Bienvenido a NexusLang"
+
+nombre = pedir("Como te llamas?")
+imprimir "Hola " + nombre
+
+para i en rango(1, 4) {
+    imprimir "Cuenta: " + texto(i)
+}
+
+db.saludos.nombre = {"nombre": nombre}
+imprimir "Guardado en la base de datos!"
