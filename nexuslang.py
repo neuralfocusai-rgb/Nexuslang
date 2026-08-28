@@ -511,6 +511,11 @@ class ServidorWeb:
                         if '=' in kv:
                             k, v = kv.split('=', 1)
                             serv._query[k] = v
+                if ruta not in rutas:
+                    for _k in list(rutas):
+                        if str(_k) == str(ruta):
+                            rutas[ruta] = rutas[_k]
+                            break
                 if ruta in rutas:
                     r = rutas[ruta]()
                     if es_html(r):
