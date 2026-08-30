@@ -53,26 +53,33 @@ class IA:
 class DB:
     def __init__(self): object.__setattr__(self, '_data', _db_load())
     def __getattr__(self, name): return DBPath(self._data, [name])
-    def guardar(self):
-        with open("nexus_db.json", 'w', encoding='utf-8') as f:
-            json.dump(self._data, f, indent=2, ensure_ascii=False)
-        return "DB saved"
+    def guardar(self):  # NEXUSBASE-WIRED
+        _db_flush(self._data)
+        return "DB saved (NexusBase)" if _NB_OK else "DB saved"
 
 import json as _json
 import os as _os
 _NEXUS_DB_FILE = _os.environ.get('NEXUS_DB', 'nexus_db.json')
-def _db_load():
+try:
+    from nexusbase_adapter import _kv_load as _nb_load, _kv_flush as _nb_flush
+    _NB_OK = True
+except Exception:
+    _NB_OK = False
+def _db_load():  # NEXUSBASE-WIRED
+    if _NB_OK:
+        try: return _nb_load()
+        except Exception: pass
     if _os.path.exists(_NEXUS_DB_FILE):
-        try:
-            return _json.load(open(_NEXUS_DB_FILE, encoding='utf-8'))
-        except Exception:
-            return {}
+        try: return _json.load(open(_NEXUS_DB_FILE, encoding="utf-8"))
+        except Exception: return {}
     return {}
-def _db_flush(data):
-    try:
-        _json.dump(data, open(_NEXUS_DB_FILE, 'w', encoding='utf-8'), ensure_ascii=False)
-    except Exception:
-        pass
+def _db_flush(data):  # NEXUSBASE-WIRED
+    if _NB_OK:
+        try:
+            _nb_flush(data); return
+        except Exception: pass
+    try: _json.dump(data, open(_NEXUS_DB_FILE, "w", encoding="utf-8"), ensure_ascii=False)
+    except Exception: pass
 class DBPath:
     def __init__(self, data, path):
         if not path:
