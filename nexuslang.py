@@ -115,6 +115,14 @@ KEYWORDS = [
     (r'\bno\b', 'not'), (r'\bverdadero\b', 'True'), (r'\bfalso\b', 'False'),
     (r'\bnulo\b', 'None'), (r'\bimprimir\b', 'print'), (r'\bmostrar\b', 'print'),
     (r'&&', ' and '), (r'\|\|', ' or '),
+  # --- URDU v6.4 ---
+  (r'\bورنہ\b', 'else'), (r'\bاگر\b', 'if'), (r'\bجب تک\b', 'while'),
+  (r'\bہر\b', 'for'), (r'\bمیں\b', 'in'), (r'\bواپس\b', 'return'),
+  (r'\bفعل\b', 'def'), (r'\bکلاس\b', 'class'), (r'\bتوڑو\b', 'break'),
+  (r'\bجاری\b', 'continue'), (r'\bکوشش\b', 'try'), (r'\bپکڑو\b', 'except'),
+  (r'\bآخر میں\b', 'finally'), (r'\bدرست\b', 'True'), (r'\bغلط\b', 'False'),
+  (r'\bخالی\b', 'None'), (r'\bدکھاؤ\b', 'print'), (r'\bاور\b', 'and'),
+  (r'\bیا\b', 'or'), (r'\bنہیں\b', 'not'),
 ]
 
 # ==================== INTERPRETER ====================
@@ -466,6 +474,8 @@ class NexusLang:
                     error_msg += f"\n     {' ' * len(lineas_py[lineno-1])} ^ {e}"
             
             self.out(error_msg)
+        import builtins as _bld
+        _bld._NX_NS = self.ns
         return {'output': self.output, 'db': self.ns['db']._data}
 
 def es_html(t):
@@ -497,20 +507,132 @@ class ServidorWeb:
     def ruta(self, path, funcion):
         self.rutas[path] = funcion
         return f"Ruta {path} registrada"
+    def normalizar(self):
+        for _k in list(self.rutas):
+            if type(_k) is not str:
+                self.rutas[str(_k)] = self.rutas.pop(_k)
     def iniciar(self):
         from http.server import HTTPServer, BaseHTTPRequestHandler
         rutas = self.rutas
         serv = self
         class H(BaseHTTPRequestHandler):
             def do_GET(s):
+                if s.path.startswith('/comprar/'):
+                    _slug = s.path[len('/comprar/'):]
+                    try:
+                        import json as _j, os as _o
+                        def _find(node, key):
+                            if isinstance(node, dict):
+                                if key in node and isinstance(node[key], dict):
+                                    return node[key]
+                                for v in node.values():
+                                    r = _find(v, key)
+                                    if r is not None: return r
+                            elif isinstance(node, list):
+                                for v in node:
+                                    r = _find(v, key)
+                                    if r is not None: return r
+                            return None
+                        _data = None
+                        for _f in ('nexus_db.json', 'nexus_data.json'):
+                            if _o.path.exists(_f):
+                                _data = _j.load(open(_f, encoding='utf-8')); break
+                        if _data is not None:
+                            _st = _find(_data, _slug)
+                            if _st is not None:
+                                _nom = str(_st.get('nombre', _slug))
+                                _h = "<html><head><meta charset='utf-8'></head><body><h1>🛒 " + _nom + "</h1><p>✅ Persistencia NexusBase VIVA.</p></body></html>"
+                                s.send_response(200)
+                                s.send_header('Content-Type', 'text/html; charset=utf-8')
+                                s.end_headers()
+                                s.wfile.write(_h.encode('utf-8'))
+                                return
+                    except Exception as _e:
+                        print("DYN_ERR:", repr(_e))
+                # --- BYPASS PYTHON PURO (definitivo) ---
+                if s.path.startswith('/comprar/'):
+                    _slug = s.path[len('/comprar/'):]
+                    try:
+                        import json as _j, os as _o
+                        def _find(node, key):
+                            if isinstance(node, dict):
+                                if key in node and isinstance(node[key], dict):
+                                    return node[key]
+                                for v in node.values():
+                                    r = _find(v, key)
+                                    if r is not None: return r
+                            elif isinstance(node, list):
+                                for v in node:
+                                    r = _find(v, key)
+                                    if r is not None: return r
+                            return None
+                        _data = None
+                        for _f in ('nexus_db.json', 'nexus_data.json'):
+                            if _o.path.exists(_f):
+                                _data = _j.load(open(_f, encoding='utf-8')); break
+                        if _data is not None:
+                            _st = _find(_data, _slug)
+                            if _st is not None:
+                                _nom = str(_st.get('nombre', _slug))
+                                _h = "<html><head><meta charset='utf-8'></head><body><h1>🛒 " + _nom + "</h1><p>✅ Persistencia NexusBase VIVA.</p></body></html>"
+                                s.send_response(200)
+                                s.send_header('Content-Type', 'text/html; charset=utf-8')
+                                s.end_headers()
+                                s.wfile.write(_h.encode('utf-8'))
+                                return
+                    except Exception as _e:
+                        print("DYN_ERR:", repr(_e))
+                # ---------------------------------------
                 serv._query = {}
                 ruta = s.path
+                if ruta.startswith('/comprar/'):
+                    _sl = ruta[len('/comprar/'):]
+                    try:
+                        import json as _j
+                        _d = _j.load(open(_NEXUS_DB_FILE, encoding='utf-8'))
+                        _t = (_d.get('nexusshop') or {}).get('tiendas') or {}
+                        if _sl in _t:
+                            _st = _t[_sl]
+                            _h = "<html><head><meta charset='utf-8'><title>" + str(_st.get('nombre')) + "</title></head><body><h1>🛒 " + str(_st.get('nombre')) + "</h1>"
+                            for _p in (_st.get('productos') or []):
+                                _h += "<div><b>" + str(_p.get('nombre')) + "</b> — $" + str(_p.get('precio')) + "</div>"
+                            _h += "<p>📱 WhatsApp: " + str(_st.get('whatsapp')) + "</p></body></html>"
+                            s.send_response(200)
+                            s.send_header('Content-Type', 'text/html; charset=utf-8')
+                            s.end_headers()
+                            s.wfile.write(_h.encode())
+                            return
+                    except Exception as _e:
+                        print("DYNERR:", repr(_e))
+                if ruta.startswith('/comprar/'):
+                    if True:
+                        _sl = ruta[len('/comprar/'):]
+                        _shop = getattr(serv, 'dyn_shop', None)
+                        _ptn = getattr(serv, 'dyn_ptn', None)
+                        if _shop is not None and _ptn is not None and _sl in _shop.tiendas:
+                            try:
+                                _html = str(_ptn(_sl))
+                                s.send_response(200)
+                                s.send_header('Content-Type', 'text/html; charset=utf-8')
+                                s.end_headers()
+                                s.wfile.write(_html.encode())
+                                return
+                            except Exception as _e:
+                                print("DYNERR:", repr(_e))
                 if '?' in ruta:
                     ruta, qs = ruta.split('?', 1)
                     for kv in qs.split('&'):
                         if '=' in kv:
                             k, v = kv.split('=', 1)
                             serv._query[k] = v
+                if ruta.startswith('/comprar/') and hasattr(serv, 'fallback'):
+                    _r = serv.fallback(ruta)
+                    if _r is not None:
+                        s.send_response(200)
+                        s.send_header('Content-Type', 'text/html; charset=utf-8')
+                        s.end_headers()
+                        s.wfile.write(str(_r).encode())
+                        return
                 if ruta not in rutas:
                     for _k in list(rutas):
                         if str(_k) == str(ruta):
@@ -529,8 +651,17 @@ class ServidorWeb:
                         s.end_headers()
                         s.wfile.write(json.dumps(r, ensure_ascii=False).encode())
                 else:
-                    s.send_response(404)
-                    s.end_headers()
+                    r = None
+                    if hasattr(serv, 'fallback'):
+                        r = serv.fallback(ruta)
+                    if r is not None:
+                        s.send_response(200)
+                        s.send_header('Content-Type', 'text/html; charset=utf-8')
+                        s.end_headers()
+                        s.wfile.write(str(r).encode())
+                    else:
+                        s.send_response(404)
+                        s.end_headers()
             def do_POST(s):
                 n = int(s.headers.get('Content-Length', 0))
                 cuerpo = s.rfile.read(n).decode('utf-8') if n else ''
