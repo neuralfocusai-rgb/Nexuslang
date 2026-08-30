@@ -123,6 +123,7 @@ KEYWORDS = [
   (r'\bآخر میں\b', 'finally'), (r'\bدرست\b', 'True'), (r'\bغلط\b', 'False'),
   (r'\bخالی\b', 'None'), (r'\bدکھاؤ\b', 'print'), (r'\bاور\b', 'and'),
   (r'\bیا\b', 'or'), (r'\bنہیں\b', 'not'),
+  (r'\bمتن\b', 'str'), (r'\bلمبائی\b', 'len'),
 ]
 
 # ==================== INTERPRETER ====================
@@ -878,6 +879,13 @@ if __name__ == "__main__":
             buffer = ''
     elif len(sys.argv) > 1 and sys.argv[1] != '--test':
         lang = NexusLang()
+        _urdu_src = open(sys.argv[1], encoding='utf-8').read() if os.path.exists(sys.argv[1]) else ''
+        if re.search('[\u0600-\u06FF]', _urdu_src):
+            _urdu_code = _urdu_src
+            for _p, _r in KEYWORDS:
+                _urdu_code = re.sub(_p, _r, _urdu_code)
+            exec(compile(_urdu_code, sys.argv[1], 'exec'))
+            sys.exit(0)
         with open(sys.argv[1], 'r', encoding='utf-8') as f:
             try:
                 lang.ejecutar(f.read())
