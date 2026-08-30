@@ -40,3 +40,11 @@ Advisors: revenue-share activado con $10k/90d en Pakistán, sin base.
 3. Threat model con Talal + pagos locales (JazzCash/Easypais).
 4. Piloto 3 merchants → presentación formal en Pakistán.
 5. Navegador (fork Chromium) — etapa final de la pila soberana.
+
+## UPDATE 31-08 20:55
+- Producción verificada VIVA post-redeploy NexusBase (7 tiendas servidas).
+- TERMS.md pusheado: ToS + privacidad del piloto. Cláusula de protección:
+  la plataforma NO procesa pagos en el piloto.
+- PAKISTAN_ONEPAGER.md pusheado: documento institucional para
+  presentación formal (universidades, partners, regulador).
+- Trípode documental completo: acuerdos advisors + ToS + one-pager.
