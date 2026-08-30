@@ -648,6 +648,20 @@ mientras i < len(shop.slugs) {
     }
     i = i + 1
 }
+def tienda_dyn(ruta) {
+    si ruta.find("/comprar/") != 0 {
+        devolver None
+    }
+    sl = ruta.replace("/comprar/", "")
+    si shop.tiendas.get(sl) == None {
+        devolver None
+    }
+    imprimir("DYN: " + sl + " tiene=" + texto(shop.tiendas.get(sl) != None))
+    devolver pagina_tienda_nueva(sl)
+}
+s.fallback = tienda_dyn
+s.dyn_shop = shop
+s.dyn_ptn = pagina_tienda_nueva
 s.ruta("/crear", lambda: T(pagina_crear()))
 s.ruta("/panel", lambda: T(pagina_panel()))
 s.ruta("/panel-agregar", panel_agregar)
@@ -655,4 +669,5 @@ s.ruta("/buscar", lambda: T(pagina_buscar()))
 s.ruta("/resenar", resenar)
 s.ruta("/panel-pago", panel_pago)
 s.ruta("/crear-ok", crear_ok)
+s.normalizar()
 s.iniciar()
