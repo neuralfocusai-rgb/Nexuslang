@@ -264,3 +264,16 @@ s.ruta("/nosotros", nosotros)
 s.ruta("/api", api)
 imprimir("✅ NexusShop v1.2 en http://localhost:8094")
 s.iniciar()
+def terminos():
+    t = "<h1>Terminos y Privacidad (Piloto)</h1>"
+    t = t + "<p>1. NexusShop: marketplace 0% comision.</p>"
+    t = t + "<p>2. Pagos y entrega: directo por WhatsApp entre comprador y vendedor.</p>"
+    t = t + "<p>3. El operador no procesa pagos durante el piloto.</p>"
+    t = t + "<p>4. Comerciante: unico responsable de productos, precios y envios.</p>"
+    t = t + "<p>5. Datos del comerciante: nombre, WhatsApp y productos. Nunca se venden.</p>"
+    t = t + "<p>6. Comprador: la plataforma no almacena sus datos.</p>"
+    t = t + "<p>7. Acceso y borrado de tu tienda: un mensaje de WhatsApp.</p>"
+    t = t + "<p>8. NexusShop es vidrina; la transaccion es comprador-comerciante.</p>"
+    t = t + "<p>Version completa: TERMS.md en el repo oficial.</p>"
+    devolver este.envolver('Terminos - NexusShop', t)
+ruta('terms', terminos)
