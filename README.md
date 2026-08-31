@@ -1,4 +1,3 @@
-cat > README.md << 'EOF'
 # NexusLang v9.4
 
 The first trilingual programming language
