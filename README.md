@@ -55,5 +55,3 @@ Or:
 ## License
 
 MIT
-EOF
-git add -A && git commit -m "README v9.4: trilingue + VM + NexusBase + NexusShop" && git push && echo "PUSHEADO"
