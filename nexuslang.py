@@ -123,6 +123,13 @@ KEYWORDS = [
     (r'\bnulo\b', 'None'), (r'\bimprimir\b', 'print'), (r'\bmostrar\b', 'print'),
     (r'&&', ' and '), (r'\|\|', ' or '),
   # --- URDU v6.4 ---
+    # --- URDU v10.0 (nativo y completo) ---
+    # --- URDU v10.1 (conversiones de tipo) ---
+    (r'\bمتن\b', 'str'), (r'\bعدد\b', 'int'),
+
+    (r'\bفنکشن\b', 'def'), (r'\bلکھو\b', 'print'), (r'\bپڑھو\b', 'input'),
+    (r'\bدرآمد\b', 'import'), (r'\bمتغیر\s+', ''), (r'\bکلاس\b', 'class'),
+
   (r'\bورنہ\b', 'else'), (r'\bاگر\b', 'if'), (r'\bجب تک\b', 'while'),
   (r'\bہر\b', 'for'), (r'\bمیں\b', 'in'), (r'\bواپس\b', 'return'),
   (r'\bفعل\b', 'def'), (r'\bکلاس\b', 'class'), (r'\bتوڑو\b', 'break'),
