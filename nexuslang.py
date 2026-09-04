@@ -898,8 +898,27 @@ if __name__ == "__main__":
             _urdu_code = _urdu_src
             for _p, _r in KEYWORDS:
                 _urdu_code = re.sub(_p, _r, _urdu_code)
-            exec(compile(_urdu_code, sys.argv[1], 'exec'))
+            try:
+                exec(compile(_urdu_code, sys.argv[1], 'exec'))
+            except Exception as _e:
+                _eu = {
+                    'TypeError': 'غلطی: متن اور عدد آپس میں نہیں مل سکتے — متن() یا عدد() استعمال کریں',
+                    'NameError': 'غلطی: یہ نام یا متغیر موجود نہیں — املا دیکھیں',
+                    'SyntaxError': 'غلطی: جملہ ادھورا ہے — بریکٹ، کولن یا کوٹ چیک کریں',
+                    'IndentationError': 'غلطی: لائنوں کی ترتیب درست کریں',
+                    'ZeroDivisionError': 'غلطی: صفر پر تقسیم ممکن نہیں',
+                    'ValueError': 'غلطی: قدر درست نہیں',
+                }
+                _n = type(_e).__name__
+                _ln = getattr(_e, 'lineno', None)
+                _msg = '⛔ ' + _eu.get(_n, 'غلطی: ' + _n)
+                if _ln: _msg += ' (لائن: ' + str(_ln) + ')'
+                print(_msg)
+                sys.exit(1)
             sys.exit(0)
+        if not os.path.exists(sys.argv[1]):
+            print('⛔ غلطی: فائل نہیں ملی — ' + sys.argv[1])
+            sys.exit(1)
         with open(sys.argv[1], 'r', encoding='utf-8') as f:
             try:
                 lang.ejecutar(f.read())
