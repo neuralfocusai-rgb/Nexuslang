@@ -144,7 +144,7 @@ class Env:
         s.d[n]=v
     def decl(s,n,v): s.d[n]=v
 
-BUILTINS={'لکھو':lambda *a: print(' '.join(str(x) for x in a)),'print':lambda *a: print(' '.join(str(x) for x in a)),'imprimir':lambda *a: print(' '.join(str(x) for x in a)),'پڑھو':lambda *a: input(),'متن':str,'عدد':int,'لمبائی':len,'جذر':lambda x:x**0.5,'بڑا':max,'چھوٹا':min,'مطلق':abs,'گرد':round}
+BUILTINS={'لکھو':lambda *a: print(' '.join(str(x) for x in a)),'print':lambda *a: print(' '.join(str(x) for x in a)),'imprimir':lambda *a: print(' '.join(str(x) for x in a)),'پڑھو':lambda *a: input(),'متن':str,'عدد':int,'لمبائی':len,'جذر':lambda x:x**0.5,'بڑا':max,'چھوٹا':min,'مطلق':abs,'گرد':round,'فہرست':lambda *a: list(a),'شامل':lambda l,x: (l.append(x) or l),'نکالو':lambda l: l.pop(),'ترتیب':lambda l: (l.sort() or l),'الٹو':lambda l: (l.reverse() or l),'عنصر':lambda l,i: l[i]}
 
 def truthy(v): return bool(v)
 
