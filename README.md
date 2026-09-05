@@ -143,3 +143,28 @@ MIT License - see [LICENSE](LICENSE) for details.
 <p align="center">
   <strong>Built with ❤️ in Argentina 🇦🇷 · Tested in Pakistan 🇵🇰 · Expanding to Nigeria 🇳🇬</strong>
 </p>
+
+## 🏗️ Architecture (v11)
+
+NexusLang v11 is a self-contained language. It does NOT 
+translate to Python. Source code runs on its own engine:
+
+1. **Lexer** — tokenizes source (Urdu/Spanish/English 
+   keywords), respecting strings and comments.
+2. **Parser** — recursive descent, builds an AST.
+3. **Interpreter** — tree-walk execution over the AST 
+   with scoped environments.
+
+### Own syntax
+- Blocks: `{ }`
+- Statements end with `;`
+- Comments: `//`
+- C-style `for` loops
+
+### Own semantics
+- Auto-concatenation: `"age: " + 20` works
+- Friendly errors in the learner's language
+- Trilingual keywords (Urdu / Spanish / English)
+
+> Legacy note: v10.1 (keyword transpiler to Python) is 
+> kept for backward compatibility. v11 is the future.
