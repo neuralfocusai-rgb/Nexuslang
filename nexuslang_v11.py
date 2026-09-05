@@ -1,7 +1,7 @@
 # NexusLang v11 - Interprete propio (lexer + parser + AST tree-walk)
 import sys
 
-KW={'متغیر':'var','var':'var','variable':'var','طریقہ':'fun','fun':'fun','funcion':'fun','اگر':'if','if':'if','si':'if','ورنہ':'else','else':'else','sino':'else','جبکہ':'while','while':'while','mientras':'while','برائے':'for','for':'for','para':'for','واپس':'return','return':'return','اور':'AND','and':'AND','یا':'OR','or':'OR','نہیں':'NOT','not':'NOT','کوشش':'try','try':'try','intentar':'try','پکڑو':'catch','catch':'catch','capturar':'catch','توڑو':'break','break':'break','romper':'break','جاری':'continue','continue':'continue','continuar':'continue'}
+KW={'متغیر':'var','var':'var','variable':'var','طریقہ':'fun','fun':'fun','funcion':'fun','اگر':'if','if':'if','si':'if','ورنہ':'else','else':'else','sino':'else','جبکہ':'while','while':'while','mientras':'while','برائے':'for','for':'for','para':'for','واپس':'return','return':'return','اور':'AND','and':'AND','یا':'OR','or':'OR','نہیں':'NOT','not':'NOT','کوشش':'try','try':'try','intentar':'try','پکڑو':'catch','catch':'catch','capturar':'catch','توڑو':'break','break':'break','romper':'break','جاری':'continue','continue':'continue','continuar':'continue','درآمد':'import','import':'import','importar':'import'}
 
 def lex(src):
     toks=[]; i=0; n=len(src)
@@ -55,6 +55,11 @@ class P:
             s.next(); s.expect('LP'); c=s.expr(); s.expect('RP'); return ('while',c,s.block())
         if ty=='for': return s.forstmt()
         if ty=='try': return s.trystmt()
+        if ty=='import':
+            s.next()
+            if s.peek()[0]=='LP': s.next(); p=s.expect('STR')[1]; s.expect('RP')
+            else: p=s.expect('STR')[1]
+            s.expect('SEMI'); return ('import',p)
         if ty=='break':
             s.next(); s.expect('SEMI'); return ('break',)
         if ty=='continue':
@@ -171,6 +176,7 @@ class Env:
 BUILTINS={'لکھو':lambda *a: print(' '.join(str(x) for x in a)),'print':lambda *a: print(' '.join(str(x) for x in a)),'imprimir':lambda *a: print(' '.join(str(x) for x in a)),'پڑھو':lambda *a: input(),'متن':str,'عدد':int,'لمبائی':len,'جذر':lambda x:x**0.5,'بڑا':max,'چھوٹا':min,'مطلق':abs,'گرد':round,'فہرست':lambda *a: list(a),'شامل':lambda l,x: (l.append(x) or l),'نکالو':lambda l: l.pop(),'ترتیب':lambda l: (l.sort() or l),'الٹو':lambda l: (l.reverse() or l),'عنصر':lambda l,i: l[i]}
 BUILTINS.update({'list':BUILTINS['فہرست'],'lista':BUILTINS['فہرست'],'append':BUILTINS['شامل'],'agregar':BUILTINS['شامل'],'pop':BUILTINS['نکالو'],'sacar':BUILTINS['نکالو'],'sort':BUILTINS['ترتیب'],'ordenar':BUILTINS['ترتیب'],'reverse':BUILTINS['الٹو'],'invertir':BUILTINS['الٹو'],'item':BUILTINS['عنصر'],'elemento':BUILTINS['عنصر'],'len':BUILTINS['لمبائی'],'longitud':BUILTINS['لمبائی'],'sqrt':BUILTINS['جذر'],'raiz':BUILTINS['جذر'],'max':BUILTINS['بڑا'],'maximo':BUILTINS['بڑا'],'min':BUILTINS['چھوٹا'],'minimo':BUILTINS['چھوٹا'],'abs':BUILTINS['مطلق'],'absoluto':BUILTINS['مطلق'],'round':BUILTINS['گرد'],'redondear':BUILTINS['گرد'],'str':BUILTINS['متن'],'texto':BUILTINS['متن'],'int':BUILTINS['عدد'],'entero':BUILTINS['عدد'],'input':BUILTINS['پڑھو'],'leer':BUILTINS['پڑھو']})
 BUILTINS.update({'قاموس':lambda: {},'dict':lambda: {},'diccionario':lambda: {},'درج':lambda d,k,v: (d.__setitem__(k,v) or d),'put':lambda d,k,v: (d.__setitem__(k,v) or d),'poner':lambda d,k,v: (d.__setitem__(k,v) or d),'کلیدیں':lambda d: list(d.keys()),'keys':lambda d: list(d.keys()),'claves':lambda d: list(d.keys()),'قدریں':lambda d: list(d.values()),'values':lambda d: list(d.values()),'valores':lambda d: list(d.values()),'بالا':lambda s: s.upper(),'upper':lambda s: s.upper(),'mayus':lambda s: s.upper(),'زیر':lambda s: s.lower(),'lower':lambda s: s.lower(),'minus':lambda s: s.lower(),'بدلو':lambda s,a,b: s.replace(a,b),'replace':lambda s,a,b: s.replace(a,b),'reemplazar':lambda s,a,b: s.replace(a,b),'کاٹو':lambda s,sep=' ': s.split(sep),'split':lambda s,sep=' ': s.split(sep),'dividir':lambda s,sep=' ': s.split(sep),'جوڑو':lambda sep,l: sep.join(str(x) for x in l),'join':lambda sep,l: sep.join(str(x) for x in l),'unir':lambda sep,l: sep.join(str(x) for x in l)})
+BUILTINS.update({'پڑھ_فائل':lambda p: open(p,encoding='utf-8').read(),'read_file':lambda p: open(p,encoding='utf-8').read(),'leer_archivo':lambda p: open(p,encoding='utf-8').read(),'لکھ_فائل':lambda p,t: open(p,'w',encoding='utf-8').write(t),'write_file':lambda p,t: open(p,'w',encoding='utf-8').write(t),'escribir_archivo':lambda p,t: open(p,'w',encoding='utf-8').write(t)})
 
 def truthy(v): return bool(v)
 
@@ -239,6 +245,8 @@ def run(node,env):
     elif t=='fun': env.decl(node[1],('fn',node[2],node[3],env))
     elif t=='return': raise RT(ev(node[1],env) if node[1] else None)
     elif t=='break': raise Brk()
+    elif t=='import':
+        run(P(lex(open(node[1],encoding='utf-8').read())).program(),env)
     elif t=='setindex':
         env.get(node[1])[ev(node[2],env)]=ev(node[3],env)
     elif t=='continue': raise Cont()
