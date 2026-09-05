@@ -1,0 +1,19 @@
+// Diccionarios (Urdu)
+متغیر طالب = قاموس();
+درج(طالب, "نام", "علی");
+درج(طالب, "نمبر", 80);
+لکھو(عنصر(طالب, "نام"));
+لکھو(کلیدیں(طالب));
+
+// Texto
+متغیر شہر = "Lahore";
+لکھو(بالا(شہر));
+لکھو(بدلو(شہر, "Lah", "Kar"));
+
+// Espanol + Ingles
+variable d = diccionario();
+poner(d, "ciudad", "Buenos Aires");
+imprimir(elemento(d, "ciudad"));
+var e = dict();
+put(e, "city", "NYC");
+print(item(e, "city"));
