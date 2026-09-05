@@ -1,0 +1,19 @@
+// Urdu
+متغیر ا = فہرست(3, 1, 2);
+شامل(ا, 9);
+ترتیب(ا);
+لکھو(ا);
+
+// Spanish
+variable b = lista(5, 2, 8);
+agregar(b, 1);
+ordenar(b);
+imprimir(b);
+imprimir("longitud: " + longitud(b));
+
+// English
+var c = list(7, 4, 6);
+append(c, 2);
+sort(c);
+print(c);
+print("len: " + len(c));

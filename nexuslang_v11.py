@@ -145,6 +145,7 @@ class Env:
     def decl(s,n,v): s.d[n]=v
 
 BUILTINS={'لکھو':lambda *a: print(' '.join(str(x) for x in a)),'print':lambda *a: print(' '.join(str(x) for x in a)),'imprimir':lambda *a: print(' '.join(str(x) for x in a)),'پڑھو':lambda *a: input(),'متن':str,'عدد':int,'لمبائی':len,'جذر':lambda x:x**0.5,'بڑا':max,'چھوٹا':min,'مطلق':abs,'گرد':round,'فہرست':lambda *a: list(a),'شامل':lambda l,x: (l.append(x) or l),'نکالو':lambda l: l.pop(),'ترتیب':lambda l: (l.sort() or l),'الٹو':lambda l: (l.reverse() or l),'عنصر':lambda l,i: l[i]}
+BUILTINS.update({'list':BUILTINS['فہرست'],'lista':BUILTINS['فہرست'],'append':BUILTINS['شامل'],'agregar':BUILTINS['شامل'],'pop':BUILTINS['نکالو'],'sacar':BUILTINS['نکالو'],'sort':BUILTINS['ترتیب'],'ordenar':BUILTINS['ترتیب'],'reverse':BUILTINS['الٹو'],'invertir':BUILTINS['الٹو'],'item':BUILTINS['عنصر'],'elemento':BUILTINS['عنصر'],'len':BUILTINS['لمبائی'],'longitud':BUILTINS['لمبائی'],'sqrt':BUILTINS['جذر'],'raiz':BUILTINS['جذر'],'max':BUILTINS['بڑا'],'maximo':BUILTINS['بڑا'],'min':BUILTINS['چھوٹا'],'minimo':BUILTINS['چھوٹا'],'abs':BUILTINS['مطلق'],'absoluto':BUILTINS['مطلق'],'round':BUILTINS['گرد'],'redondear':BUILTINS['گرد'],'str':BUILTINS['متن'],'texto':BUILTINS['متن'],'int':BUILTINS['عدد'],'entero':BUILTINS['عدد'],'input':BUILTINS['پڑھو'],'leer':BUILTINS['پڑھو']})
 
 def truthy(v): return bool(v)
 
