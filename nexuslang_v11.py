@@ -207,9 +207,32 @@ def run(node,env):
     elif t=='fun': env.decl(node[1],('fn',node[2],node[3],env))
     elif t=='return': raise RT(ev(node[1],env) if node[1] else None)
 
+def repl():
+    env=Env()
+    print('NexusLang v11 REPL — salir: خروج')
+    buf=''
+    while True:
+        try:
+            line=input('... ' if buf else '>> ')
+        except EOFError:
+            break
+        if line.strip() in ('exit','خروج'):
+            break
+        buf+=line+'\n'
+        if buf.count('{')>buf.count('}'):
+            continue
+        try:
+            run(P(lex(buf)).program(),env)
+        except Exception as e:
+            print(str(e))
+        buf=''
+
 if __name__=='__main__':
-    src=open(sys.argv[1],encoding='utf-8').read()
-    try:
-        run(P(lex(src)).program(),Env())
-    except Exception as e:
-        print(str(e))
+    if len(sys.argv)>1:
+        src=open(sys.argv[1],encoding='utf-8').read()
+        try:
+            run(P(lex(src)).program(),Env())
+        except Exception as e:
+            print(str(e))
+    else:
+        repl()
