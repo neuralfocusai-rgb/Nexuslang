@@ -1,7 +1,7 @@
 # NexusLang v11 - Interprete propio (lexer + parser + AST tree-walk)
 import sys
 
-KW={'متغیر':'var','var':'var','variable':'var','طریقہ':'fun','fun':'fun','funcion':'fun','اگر':'if','if':'if','si':'if','ورنہ':'else','else':'else','sino':'else','جبکہ':'while','while':'while','mientras':'while','برائے':'for','for':'for','para':'for','واپس':'return','return':'return','اور':'AND','and':'AND','یا':'OR','or':'OR','نہیں':'NOT','not':'NOT'}
+KW={'متغیر':'var','var':'var','variable':'var','طریقہ':'fun','fun':'fun','funcion':'fun','اگر':'if','if':'if','si':'if','ورنہ':'else','else':'else','sino':'else','جبکہ':'while','while':'while','mientras':'while','برائے':'for','for':'for','para':'for','واپس':'return','return':'return','اور':'AND','and':'AND','یا':'OR','or':'OR','نہیں':'NOT','not':'NOT','کوشش':'try','try':'try','intentar':'try','پکڑو':'catch','catch':'catch','capturar':'catch'}
 
 def lex(src):
     toks=[]; i=0; n=len(src)
@@ -54,6 +54,7 @@ class P:
         if ty=='while':
             s.next(); s.expect('LP'); c=s.expr(); s.expect('RP'); return ('while',c,s.block())
         if ty=='for': return s.forstmt()
+        if ty=='try': return s.trystmt()
         if ty=='return':
             s.next(); e=None
             if s.peek()[0]!='SEMI': e=s.expr()
@@ -83,6 +84,11 @@ class P:
         c=s.expr(); s.expect('SEMI')
         sn=s.expect('IDENT')[1]; s.expect('ASSIGN'); se=s.expr(); s.expect('RP')
         return ('for',init,c,(sn,se),s.block())
+    def trystmt(s):
+        s.next(); b=s.block()
+        s.expect('catch')
+        s.expect('LP'); err=s.expect('IDENT')[1]; s.expect('RP')
+        return ('try',b,err,s.block())
     def expr(s): return s.orx()
     def orx(s):
         l=s.andx()
@@ -207,6 +213,13 @@ def run(node,env):
             env.set(node[3][0],ev(node[3][1],env))
     elif t=='fun': env.decl(node[1],('fn',node[2],node[3],env))
     elif t=='return': raise RT(ev(node[1],env) if node[1] else None)
+    elif t=='try':
+        try:
+            run(node[1],env)
+        except Exception as e:
+            ne=Env(env)
+            ne.decl(node[2],str(e))
+            run(node[3],ne)
 
 def repl():
     env=Env()
