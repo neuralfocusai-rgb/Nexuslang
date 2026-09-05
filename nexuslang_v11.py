@@ -1,7 +1,7 @@
 # NexusLang v11 - Interprete propio (lexer + parser + AST tree-walk)
 import sys
 
-KW={'متغیر':'var','var':'var','variable':'var','طریقہ':'fun','fun':'fun','funcion':'fun','اگر':'if','if':'if','si':'if','ورنہ':'else','else':'else','sino':'else','جبکہ':'while','while':'while','mientras':'while','برائے':'for','for':'for','para':'for','واپس':'return','return':'return','اور':'AND','and':'AND','یا':'OR','or':'OR','نہیں':'NOT','not':'NOT','کوشش':'try','try':'try','intentar':'try','پکڑو':'catch','catch':'catch','capturar':'catch','توڑو':'break','break':'break','romper':'break','جاری':'continue','continue':'continue','continuar':'continue','درآمد':'import','import':'import','importar':'import'}
+KW={'متغیر':'var','var':'var','variable':'var','طریقہ':'fun','fun':'fun','funcion':'fun','اگر':'if','if':'if','si':'if','ورنہ':'else','else':'else','sino':'else','جبکہ':'while','while':'while','mientras':'while','برائے':'for','for':'for','para':'for','واپس':'return','return':'return','اور':'AND','and':'AND','یا':'OR','or':'OR','نہیں':'NOT','not':'NOT','کوشش':'try','try':'try','intentar':'try','پکڑو':'catch','catch':'catch','capturar':'catch','توڑو':'break','break':'break','romper':'break','جاری':'continue','continue':'continue','continuar':'continue','درآمد':'import','import':'import','importar':'import','کلاس':'class','class':'class','clase':'class'}
 
 def lex(src):
     toks=[]; i=0; n=len(src)
@@ -23,7 +23,7 @@ def lex(src):
             while j<n and (src[j].isalnum() or src[j]=='_' or '؀'<=src[j]<='ۿ'): j+=1
             w=src[i:j]; toks.append((KW[w],w) if w in KW else ('IDENT',w)); i=j; continue
         hit=False
-        for name,pat in [('EQ','=='),('NE','!='),('LE','<='),('GE','>='),('ASSIGN','='),('LT','<'),('GT','>'),('PLUS','+'),('MINUS','-'),('MUL','*'),('DIV','/'),('LBR','{'),('RBR','}'),('LP','('),('RP',')'),('SEMI',';'),('COMMA',','),('LSQ','['),('RSQ',']')]:
+        for name,pat in [('EQ','=='),('NE','!='),('LE','<='),('GE','>='),('ASSIGN','='),('LT','<'),('GT','>'),('PLUS','+'),('MINUS','-'),('MUL','*'),('DIV','/'),('LBR','{'),('RBR','}'),('LP','('),('RP',')'),('SEMI',';'),('COMMA',','),('LSQ','['),('RSQ',']'),('DOT','.')]:
             if src.startswith(pat,i):
                 toks.append((name,pat)); i+=len(pat); hit=True; break
         if not hit: raise Exception('⛔ غلطی: غیر متوقع علامت: '+c)
@@ -54,6 +54,7 @@ class P:
         if ty=='while':
             s.next(); s.expect('LP'); c=s.expr(); s.expect('RP'); return ('while',c,s.block())
         if ty=='for': return s.forstmt()
+        if ty=='class': return s.classstmt()
         if ty=='try': return s.trystmt()
         if ty=='import':
             s.next()
@@ -66,6 +67,17 @@ class P:
             s.next(); s.expect('SEMI'); return ('continue',)
         if ty=='IDENT' and s.i+1<len(s.t) and s.t[s.i+1][0]=='LSQ':
             name=s.next()[1]; s.next(); idx=s.expr(); s.expect('RSQ'); s.expect('ASSIGN'); val=s.expr(); s.expect('SEMI'); return ('setindex',name,idx,val)
+        if ty=='IDENT' and s.i+1<len(s.t) and s.t[s.i+1][0]=='DOT':
+            save=s.i; name=s.next()[1]; s.next(); attr=s.expect('IDENT')[1]
+            if s.peek()[0]=='ASSIGN':
+                s.next(); val=s.expr(); s.expect('SEMI'); return ('setmember',name,attr,val)
+            if s.peek()[0]=='LP':
+                s.next(); args=[]
+                while s.peek()[0]!='RP':
+                    args.append(s.expr())
+                    if s.peek()[0]=='COMMA': s.next()
+                s.expect('RP'); s.expect('SEMI'); return ('expr',('method',('var',name),attr,args))
+            s.i=save
         if ty=='return':
             s.next(); e=None
             if s.peek()[0]!='SEMI': e=s.expr()
@@ -95,6 +107,13 @@ class P:
         c=s.expr(); s.expect('SEMI')
         sn=s.expect('IDENT')[1]; s.expect('ASSIGN'); se=s.expr(); s.expect('RP')
         return ('for',init,c,(sn,se),s.block())
+    def classstmt(s):
+        s.next(); name=s.expect('IDENT')[1]; s.expect('LBR'); methods={}
+        while s.peek()[0]!='RBR':
+            if s.peek()[0]=='fun':
+                f=s.fundef(); methods[f[1]]=(f[2],f[3])
+            else: s.next()
+        s.expect('RBR'); return ('class',name,methods)
     def trystmt(s):
         s.next(); b=s.block()
         s.expect('catch')
@@ -125,8 +144,18 @@ class P:
             op=s.next()[0]; l=('bin',op,l,s.unary())
         return l
     def postfix(s,base):
-        while s.peek()[0]=='LSQ':
-            s.next(); idx=s.expr(); s.expect('RSQ'); base=('index',base,idx)
+        while s.peek()[0] in ('LSQ','DOT'):
+            if s.peek()[0]=='LSQ':
+                s.next(); idx=s.expr(); s.expect('RSQ'); base=('index',base,idx)
+            else:
+                s.next(); attr=s.expect('IDENT')[1]
+                if s.peek()[0]=='LP':
+                    s.next(); args=[]
+                    while s.peek()[0]!='RP':
+                        args.append(s.expr())
+                        if s.peek()[0]=='COMMA': s.next()
+                    s.expect('RP'); base=('method',base,attr,args)
+                else: base=('member',base,attr)
         return base
     def unary(s):
         if s.peek()[0]=='NOT': s.next(); return ('not',s.unary())
@@ -186,6 +215,15 @@ def ev(node,env):
     if t=='str': return node[1]
     if t=='arr': return [ev(e,env) for e in node[1]]
     if t=='index': return ev(node[1],env)[ev(node[2],env)]
+    if t=='member': return ev(node[1],env)[node[2]]
+    if t=='method':
+        b=ev(node[1],env); cls=b['__class__']; f=cls[2][node[2]]
+        args=[ev(a,env) for a in node[3]]
+        ne=Env(f[3]); ne.decl('خود',b); ne.decl('self',b)
+        for p,a in zip(f[1],args): ne.decl(p,a)
+        try: run(f[2],ne)
+        except RT as r: return r.args[0] if r.args else None
+        return None
     if t=='var': return env.get(node[1])
     if t=='bin':
         l=ev(node[2],env); r=ev(node[3],env)
@@ -211,6 +249,14 @@ def ev(node,env):
         name=node[1]; args=[ev(a,env) for a in node[2]]
         if name in BUILTINS: return BUILTINS[name](*args)
         f=env.get(name)
+        if isinstance(f,tuple) and f[0]=='cls':
+            inst={'__class__':f}
+            if 'نیا' in f[2]:
+                cf=f[2]['نیا']; ne=Env(cf[3]); ne.decl('خود',inst); ne.decl('self',inst)
+                for p,a in zip(cf[1],args): ne.decl(p,a)
+                try: run(cf[2],ne)
+                except RT: pass
+            return inst
         if isinstance(f,tuple) and f[0]=='fn':
             ne=Env(f[3])
             for p,a in zip(f[1],args): ne.decl(p,a)
@@ -245,6 +291,12 @@ def run(node,env):
     elif t=='fun': env.decl(node[1],('fn',node[2],node[3],env))
     elif t=='return': raise RT(ev(node[1],env) if node[1] else None)
     elif t=='break': raise Brk()
+    elif t=='class':
+        m={}
+        for k,v in node[2].items(): m[k]=('fn',v[0],v[1],env)
+        env.decl(node[1],('cls',node[1],m))
+    elif t=='setmember':
+        env.get(node[1])[node[2]]=ev(node[3],env)
     elif t=='import':
         run(P(lex(open(node[1],encoding='utf-8').read())).program(),env)
     elif t=='setindex':
