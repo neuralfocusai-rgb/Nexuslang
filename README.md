@@ -168,3 +168,17 @@ translate to Python. Source code runs on its own engine:
 
 > Legacy note: v10.1 (keyword transpiler to Python) is 
 > kept for backward compatibility. v11 is the future.
+
+## ✨ Full feature set (v11)
+
+- Imperative: variables, operators, conditionals, loops
+  (while, for, break, continue)
+- Functions: recursion, closures
+- Data: lists [..] with indexing a[0], dicts, strings, math
+- OOP: classes (کلاس), self (خود), constructor (نیا),
+  methods, attributes
+- Modules: درآمد("file.nx")
+- File I/O: read / write
+- Errors: try/catch (کوشش/پکڑو) + friendly messages
+- REPL: interactive shell
+- Trilingual: Urdu / Spanish / English
