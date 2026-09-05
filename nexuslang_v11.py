@@ -23,7 +23,7 @@ def lex(src):
             while j<n and (src[j].isalnum() or src[j]=='_' or '؀'<=src[j]<='ۿ'): j+=1
             w=src[i:j]; toks.append((KW[w],w) if w in KW else ('IDENT',w)); i=j; continue
         hit=False
-        for name,pat in [('EQ','=='),('NE','!='),('LE','<='),('GE','>='),('ASSIGN','='),('LT','<'),('GT','>'),('PLUS','+'),('MINUS','-'),('MUL','*'),('DIV','/'),('LBR','{'),('RBR','}'),('LP','('),('RP',')'),('SEMI',';'),('COMMA',',')]:
+        for name,pat in [('EQ','=='),('NE','!='),('LE','<='),('GE','>='),('ASSIGN','='),('LT','<'),('GT','>'),('PLUS','+'),('MINUS','-'),('MUL','*'),('DIV','/'),('LBR','{'),('RBR','}'),('LP','('),('RP',')'),('SEMI',';'),('COMMA',','),('LSQ','['),('RSQ',']')]:
             if src.startswith(pat,i):
                 toks.append((name,pat)); i+=len(pat); hit=True; break
         if not hit: raise Exception('⛔ غلطی: غیر متوقع علامت: '+c)
@@ -59,6 +59,8 @@ class P:
             s.next(); s.expect('SEMI'); return ('break',)
         if ty=='continue':
             s.next(); s.expect('SEMI'); return ('continue',)
+        if ty=='IDENT' and s.i+1<len(s.t) and s.t[s.i+1][0]=='LSQ':
+            name=s.next()[1]; s.next(); idx=s.expr(); s.expect('RSQ'); s.expect('ASSIGN'); val=s.expr(); s.expect('SEMI'); return ('setindex',name,idx,val)
         if ty=='return':
             s.next(); e=None
             if s.peek()[0]!='SEMI': e=s.expr()
@@ -117,12 +119,22 @@ class P:
         while s.peek()[0] in ('MUL','DIV'):
             op=s.next()[0]; l=('bin',op,l,s.unary())
         return l
+    def postfix(s,base):
+        while s.peek()[0]=='LSQ':
+            s.next(); idx=s.expr(); s.expect('RSQ'); base=('index',base,idx)
+        return base
     def unary(s):
         if s.peek()[0]=='NOT': s.next(); return ('not',s.unary())
         if s.peek()[0]=='MINUS': s.next(); return ('neg',s.unary())
-        return s.primary()
+        return s.postfix(s.primary())
     def primary(s):
         tok=s.next()
+        if tok[0]=='LSQ':
+            els=[]
+            while s.peek()[0]!='RSQ':
+                els.append(s.expr())
+                if s.peek()[0]=='COMMA': s.next()
+            s.expect('RSQ'); return ('arr',els)
         if tok[0]=='NUM': return ('num',tok[1])
         if tok[0]=='STR': return ('str',tok[1])
         if tok[0]=='IDENT':
@@ -166,6 +178,8 @@ def ev(node,env):
     t=node[0]
     if t=='num': return node[1]
     if t=='str': return node[1]
+    if t=='arr': return [ev(e,env) for e in node[1]]
+    if t=='index': return ev(node[1],env)[ev(node[2],env)]
     if t=='var': return env.get(node[1])
     if t=='bin':
         l=ev(node[2],env); r=ev(node[3],env)
@@ -225,6 +239,8 @@ def run(node,env):
     elif t=='fun': env.decl(node[1],('fn',node[2],node[3],env))
     elif t=='return': raise RT(ev(node[1],env) if node[1] else None)
     elif t=='break': raise Brk()
+    elif t=='setindex':
+        env.get(node[1])[ev(node[2],env)]=ev(node[3],env)
     elif t=='continue': raise Cont()
     elif t=='try':
         try:
