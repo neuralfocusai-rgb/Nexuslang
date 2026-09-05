@@ -1,7 +1,7 @@
 # NexusLang v11 - Interprete propio (lexer + parser + AST tree-walk)
 import sys
 
-KW={'متغیر':'var','var':'var','variable':'var','طریقہ':'fun','fun':'fun','funcion':'fun','اگر':'if','if':'if','si':'if','ورنہ':'else','else':'else','sino':'else','جبکہ':'while','while':'while','mientras':'while','برائے':'for','for':'for','para':'for','واپس':'return','return':'return','اور':'AND','and':'AND','یا':'OR','or':'OR','نہیں':'NOT','not':'NOT','کوشش':'try','try':'try','intentar':'try','پکڑو':'catch','catch':'catch','capturar':'catch'}
+KW={'متغیر':'var','var':'var','variable':'var','طریقہ':'fun','fun':'fun','funcion':'fun','اگر':'if','if':'if','si':'if','ورنہ':'else','else':'else','sino':'else','جبکہ':'while','while':'while','mientras':'while','برائے':'for','for':'for','para':'for','واپس':'return','return':'return','اور':'AND','and':'AND','یا':'OR','or':'OR','نہیں':'NOT','not':'NOT','کوشش':'try','try':'try','intentar':'try','پکڑو':'catch','catch':'catch','capturar':'catch','توڑو':'break','break':'break','romper':'break','جاری':'continue','continue':'continue','continuar':'continue'}
 
 def lex(src):
     toks=[]; i=0; n=len(src)
@@ -55,6 +55,10 @@ class P:
             s.next(); s.expect('LP'); c=s.expr(); s.expect('RP'); return ('while',c,s.block())
         if ty=='for': return s.forstmt()
         if ty=='try': return s.trystmt()
+        if ty=='break':
+            s.next(); s.expect('SEMI'); return ('break',)
+        if ty=='continue':
+            s.next(); s.expect('SEMI'); return ('continue',)
         if ty=='return':
             s.next(); e=None
             if s.peek()[0]!='SEMI': e=s.expr()
@@ -134,6 +138,8 @@ class P:
         raise Exception('⛔ غلطی: غیر متوقع ٹوکن '+str(tok[0]))
 
 class RT(Exception): pass
+class Brk(Exception): pass
+class Cont(Exception): pass
 class Env:
     def __init__(s,parent=None): s.d={}; s.p=parent
     def get(s,n):
@@ -205,14 +211,21 @@ def run(node,env):
         if truthy(ev(node[1],env)): run(node[2],env)
         elif node[3]: run(node[3],env)
     elif t=='while':
-        while truthy(ev(node[1],env)): run(node[2],env)
+        while truthy(ev(node[1],env)):
+            try: run(node[2],env)
+            except Brk: break
+            except Cont: continue
     elif t=='for':
         run(node[1],env)
         while truthy(ev(node[2],env)):
-            run(node[4],env)
+            try: run(node[4],env)
+            except Brk: break
+            except Cont: pass
             env.set(node[3][0],ev(node[3][1],env))
     elif t=='fun': env.decl(node[1],('fn',node[2],node[3],env))
     elif t=='return': raise RT(ev(node[1],env) if node[1] else None)
+    elif t=='break': raise Brk()
+    elif t=='continue': raise Cont()
     elif t=='try':
         try:
             run(node[1],env)
