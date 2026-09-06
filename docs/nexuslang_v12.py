@@ -1,16 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-NexusLang v12 - Full Implementation
-Classes, Arrays, For Loops, Try/Catch, Stdlib
-اردو · Español · English
-"""
-
 import sys, re
 
-# ============================================================================
-# KEYWORDS
-# ============================================================================
 KW = {
     'متغیر':'VAR','variable':'VAR','var':'VAR',
     'لکھو':'PRINT','escribir':'PRINT','print':'PRINT',
@@ -33,13 +24,11 @@ KW = {
     'درآمد':'IMPORT','importar':'IMPORT','import':'IMPORT',
 }
 
-# ============================================================================
-# TOKENS
-# ============================================================================
 TOKENS = [
     ('STRING', r'"[^"]*"|\'[^\']*\''),
     ('NUMBER', r'\d+(?:\.\d+)?'),
-    ('IDENT', r'[A-Za-z_\u0600-\u06FF][A-Za-z0-9_\u0600-\u06FF]*'),
+    ('COMMA', r',|،'),
+    ('SEMI', r';|؛'),
     ('LBRACKET', r'\['),
     ('RBRACKET', r'\]'),
     ('OP2', r'==|!=|<=|>=|&&|\|\|'),
@@ -49,9 +38,8 @@ TOKENS = [
     ('RPAREN', r'\)'),
     ('LBRACE', r'\{'),
     ('RBRACE', r'\}'),
-    ('COMMA', r','),
-    ('SEMI', r';'),
     ('DOT', r'\.'),
+    ('IDENT', r'[A-Za-z_\u0600-\u06FF][A-Za-z0-9_\u0600-\u06FF]*'),
     ('WS', r'\s+'),
 ]
 
@@ -78,9 +66,6 @@ def tokenize(code):
     tokens.append({'kind': 'EOF', 'value': None, 'line': line})
     return tokens
 
-# ============================================================================
-# EXCEPTIONS
-# ============================================================================
 class ReturnExc(Exception):
     def __init__(self, v): self.v = v
 class BreakExc(Exception): pass
@@ -91,9 +76,6 @@ class NexusError(Exception):
         self.line = line
         super().__init__(f"\n⛔ غلطی لائن {line}: {msg}\nError en línea {line}: {msg}\nLine {line} error: {msg}")
 
-# ============================================================================
-# STANDARD LIBRARY
-# ============================================================================
 STDLIB = {
     'input': lambda: input(),
     'len': lambda x: len(x) if isinstance(x, (str, list)) else 0,
@@ -104,9 +86,6 @@ STDLIB = {
     'print': print,
 }
 
-# ============================================================================
-# INTERPRETER
-# ============================================================================
 class Interp:
     def __init__(self):
         self.vars = {}
@@ -115,7 +94,6 @@ class Interp:
         self.tokens = []
         self.pos = 0
         self.output = []
-        self.scope = {}
         
     def cur(self):
         return self.tokens[self.pos] if self.pos < len(self.tokens) else {'kind':'EOF','value':None,'line':0}
@@ -164,6 +142,16 @@ class Interp:
             self.consume('CONTINUE')
             self.eat_semi()
             raise ContExc()
+        elif k == 'SELF' and self.peek()['kind'] == 'DOT':
+            self.consume('SELF')
+            self.consume('DOT')
+            prop = self.consume('IDENT')['value']
+            self.consume('ASSIGN')
+            v = self.expression()
+            self.eat_semi()
+            obj = self.vars.get('self')
+            if isinstance(obj, dict):
+                obj['__data__'][prop] = v
         elif k == 'LBRACE':
             self.block()
         elif k == 'SEMI':
@@ -259,7 +247,6 @@ class Interp:
         self.consume('FOR')
         self.consume('LPAREN')
         
-        # Init - NO consumir SEMI manualmente
         if self.cur()['kind'] == 'VAR':
             self.consume('VAR')
             name = self.consume('IDENT')['value']
@@ -272,30 +259,23 @@ class Interp:
             v = self.expression()
             self.vars[name] = v
         
-        # Consumir primer SEMI
         if self.cur()['kind'] == 'SEMI':
             self.pos += 1
         
-        # Condition
         cond_start = self.pos
-        cond_expr = self.expression()
-        
-        # Consumir segundo SEMI
-        if self.cur()['kind'] == 'SEMI':
-            self.pos += 1
-        
-        # Increment
-        inc_start = self.pos
         self.expression()
         
-        # Consumir RPAREN
+        if self.cur()['kind'] == 'SEMI':
+            self.pos += 1
+        
+        inc_start = self.pos
+        self.expression()
         self.consume('RPAREN')
         
         body_start = self.pos
         self.skip_block()
         body_end = self.pos
         
-        # Execute loop
         while True:
             self.pos = cond_start
             cond = self.expression()
@@ -397,7 +377,6 @@ class Interp:
                 self.pos += 1
             catch_end = self.pos - 1
             
-            # Execute try block
             save_pos = self.pos
             self.pos = try_start
             try:
@@ -429,7 +408,6 @@ class Interp:
             self.pos = save
             return result
         elif name in self.classes:
-            # Constructor call
             cls = self.classes[name]
             obj = {'__class__': name, '__data__': {}}
             if 'init' in cls:
@@ -552,8 +530,9 @@ class Interp:
                     expr = self.call_function(expr, args)
                 elif isinstance(expr, str) and expr in STDLIB:
                     expr = STDLIB[expr](*args)
+                elif isinstance(expr, str) and expr in self.classes:
+                    expr = self.call_function(expr, args)
                 elif isinstance(expr, dict) and '__class__' in expr and 'name' in expr:
-                    # Method call
                     cls = self.classes[expr['__class__']]
                     mname = expr['name']
                     if mname in cls:
@@ -561,7 +540,10 @@ class Interp:
                         if len(args) != len(m['params']):
                             raise NexusError(f"Method {mname} expects {len(m['params'])} args", 0)
                         old = self.vars.copy()
-                        self.vars['self'] = expr
+                        if 'obj' in expr:
+                            self.vars['self'] = expr['obj']
+                        else:
+                            self.vars['self'] = expr
                         for p, a in zip(m['params'], args):
                             self.vars[p] = a
                         save = self.pos
@@ -588,7 +570,10 @@ class Interp:
             elif self.cur()['kind'] == 'DOT' and isinstance(expr, dict) and '__class__' in expr:
                 self.pos += 1
                 mname = self.consume('IDENT')['value']
-                expr = {'__class__': expr['__class__'], 'name': mname}
+                if self.cur()['kind'] == 'LPAREN':
+                    expr = {'__class__': expr['__class__'], 'name': mname, 'obj': expr}
+                else:
+                    expr = expr['__data__'].get(mname)
             elif self.cur()['kind'] == 'LBRACKET' and isinstance(expr, list):
                 self.pos += 1
                 idx = self.expression()
@@ -632,9 +617,12 @@ class Interp:
             self.pos += 1
             cname = self.consume('IDENT')['value']
             if cname in self.classes:
-                return {'__class__': cname}
+                return cname
             else:
                 raise NexusError(f"Class {cname} not defined", t['line'])
+        if t['kind'] == 'SELF':
+            self.pos += 1
+            return self.vars.get('self')
         if t['kind'] == 'IDENT':
             self.pos += 1
             name = t['value']
