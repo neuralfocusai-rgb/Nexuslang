@@ -27,7 +27,7 @@ pre{background:#111;border-radius:12px;padding:14px;min-height:200px;white-space
 <main>
 <textarea id="code">متغیر نام = "حماد";
 لکھو("سلام " + نام);</textarea>
-<button id="runBtn">▶ چلاؤ / Run</button>
+<button id="runBtn" disabled>▶ چلاؤ / Run</button>
 <div id="status">Loading Pyodide...</div>
 <pre id="out"></pre>
 <div class="info">
@@ -50,12 +50,13 @@ async function loadInterpreter() {
         
         // Load interpreter with cache busting
         const response = await fetch('nexuslang_v12.py?t=' + Date.now());
+        if (!response.ok) throw new Error("No se pudo cargar nexuslang_v12.py");
         interpreterCode = await response.text();
         
         document.getElementById('status').textContent = '✅ Ready — Click Run';
         document.getElementById('runBtn').disabled = false;
     } catch (err) {
-        document.getElementById('status').textContent = ' Error: ' + err.message;
+        document.getElementById('status').textContent = '⛔ Error: ' + err.message;
     }
 }
 
@@ -79,7 +80,6 @@ async function runCode() {
         const result = pyodide.runPython(`
 import sys
 import io
-import contextlib
 
 # Write user code to file
 with open('/program.nx', 'w', encoding='utf-8') as f:
@@ -98,8 +98,10 @@ try:
     exec(interpreterCode, {'__name__': '__main__'})
 except Exception as e:
     error_msg = '\\n⛔ Error: ' + str(e)
+finally:
+    # Always restore stdout even if exec breaks unexpectedly
+    sys.stdout = old_stdout
 
-sys.stdout = old_stdout
 captured.getvalue() + error_msg
 `);
         
