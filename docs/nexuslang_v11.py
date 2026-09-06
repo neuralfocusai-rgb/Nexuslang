@@ -418,7 +418,7 @@ class Interpreter:
             op = self.consume()['value']
             right = self.factor()
             if op == '+':
-                left = left + right
+                left = str(left) + str(right) if isinstance(left, str) or isinstance(right, str) else left + right
             else:
                 left = left - right
         
