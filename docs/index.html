@@ -18,20 +18,20 @@ pre{background:#111;border-radius:12px;padding:14px;min-height:80px;white-space:
 </head>
 <body>
 <header><h1>Nexus<span style="color:#ffd166">Lang</span> 🇵🇰</h1>
-<div class="tag">اردو · Español · English — escribe código en tu idioma</div></header>
+<div class="tag">اردو · Español · English — اپنی زبان میں کوڈ لکھیں</div></header>
 <main>
 <textarea id="code">متغیر نام = "دنیا";
 لکھو("سلام " + نام);</textarea>
-<button onclick="run()">▶ چلاؤ / Run / Ejecutar</button>
-<div id="status">Cargando Python…</div>
+<button onclick="run()">▶ چلاؤ / Run</button>
+<div id="status">پائتھون لوڈ ہو رہا ہے…</div>
 <pre id="out"></pre>
 
 <div style="background:#0a5230;border-radius:12px;padding:14px;margin-top:16px;font-size:14px">
-<b>💻 Para PC (VS Code / Bloc de notas):</b><br>
-1. Descargá el intérprete (un solo archivo):<br>
+<b>💻 پی سی کے لیے (VS Code / نوٹ پیڈ):</b><br>
+1. انٹرپریٹر ڈاؤن لوڈ کریں (صرف ایک فائل):<br>
 <a style="color:#ffd166" href="nexuslang_v11.py" download>⬇ nexuslang_v11.py</a><br>
-2. Instalá Python 3 y escribí tu código en Notepad/VS Code como <code>programa.nx</code><br>
-3. Ejecutá: <code>python nexuslang_v11.py programa.nx</code>
+2. Python 3 انسٹال کریں اور Notepad/VS Code میں اپنا کوڈ لکھیں بطور <code>programa.nx</code><br>
+3. چلائیں: <code>python nexuslang_v11.py programa.nx</code>
 </div>
 </main>
 <script>
@@ -39,11 +39,11 @@ let py=null, interp='';
 async function init(){
   py = await loadPyodide({indexURL:'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/'});
   interp = await (await fetch('nexuslang_v11.py')).text();
-  document.getElementById('status').textContent='Listo ✔ — tocá Run';
+  document.getElementById('status').textContent='تیار ✔ — Run دبائیں';
 }
 init();
 async function run(){
-  if(!py){document.getElementById('out').textContent='Aún cargando…';return;}
+  if(!py){document.getElementById('out').textContent='ابھی لوڈ ہو رہا ہے…';return;}
   const src=document.getElementById('code').value;
   py.globals.set('user_src',src); py.globals.set('interp_src',interp);
   const r = py.runPython(`
