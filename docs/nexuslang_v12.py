@@ -432,8 +432,8 @@ class Interp:
             # Constructor call
             cls = self.classes[name]
             obj = {'__class__': name, '__data__': {}}
-            if '__init__' in cls:
-                init = cls['__init__']
+            if 'init' in cls:
+                init = cls['init']
                 if len(args) != len(init['params']):
                     raise NexusError(f"Constructor expects {len(init['params'])} args", 0)
                 old = self.vars.copy()
