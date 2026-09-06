@@ -10,9 +10,9 @@
 header{padding:16px;text-align:center}h1{font-size:24px}
 .tag{font-size:13px;opacity:.85}
 main{max-width:760px;margin:0 auto;padding:0 12px 40px}
-textarea{width:100%;height:280px;font-size:18px;border:0;border-radius:12px;padding:14px;font-size:16px;direction:rtl;font-family:monospace;background:#fff;color:#111}
+textarea{width:100%;height:280px;border:0;border-radius:12px;padding:14px;font-size:18px;direction:rtl;font-family:monospace;background:#fff;color:#111}
 button{width:100%;margin:12px 0;background:#ffd166;color:#111;border:0;border-radius:12px;padding:14px;font-size:18px;font-weight:800;cursor:pointer}
-pre{background:#111;border-radius:12px;padding:14px;min-height:200px;font-size:18px;max-height:40vh;overflow-y:auto;white-space:pre-wrap;font-size:15px;color:#7CFC00}
+pre{background:#111;border-radius:12px;padding:14px;min-height:200px;white-space:pre-wrap;font-size:18px;color:#7CFC00;max-height:40vh;overflow-y:auto}
 #status{font-size:13px;text-align:center;padding:6px}
 </style>
 </head>
@@ -20,43 +20,52 @@ pre{background:#111;border-radius:12px;padding:14px;min-height:200px;font-size:1
 <header><h1>Nexus<span style="color:#ffd166">Lang</span> 🇵🇰</h1>
 <div class="tag">اردو · Español · English — اپنی زبان میں کوڈ لکھیں</div></header>
 <main>
-<textarea id="code">متغیر نام = "دنیا";
-لکھو("سلام " + نام);</textarea>
+<textarea id="code">کلاس طالب_علم {
+    طریقہ init(نام، نمبر) {
+        خود.نام = نام;
+        خود.نمبر = نمبر;
+    }
+    طریقہ دکھاؤ() {
+        لکھو("طالب علم: " + خود.نام);
+        لکھو("نمبر: " + خود.نمبر);
+    }
+}
+متغیر s = نیا طالب_علم("علی", 95);
+s.دکھاؤ();</textarea>
 <button onclick="run()">▶ چلاؤ / Run</button>
-<div id="status">پائتھون لوڈ ہو رہا ہے…</div>
+<div id="status">Cargando Python...</div>
 <pre id="out"></pre>
-
 <div style="background:#0a5230;border-radius:12px;padding:14px;margin-top:16px;font-size:14px">
 <b>💻 پی سی کے لیے (VS Code / نوٹ پیڈ):</b><br>
 1. انٹرپریٹر ڈاؤن لوڈ کریں (صرف ایک فائل):<br>
-<a style="color:#ffd166" href="nexuslang_v13.py" download>⬇ nexuslang_v13.py</a><br>
-2. Python 3 انسٹال کریں اور Notepad/VS Code میں اپنا کوڈ لکھیں بطور <code>programa.nx</code><br>
-3. چلائیں: <code>python nexuslang_v13.py programa.nx</code>
+<a style="color:#ffd166" href="nexuslang_v12.py" download>⬇ nexuslang_v12.py</a><br>
+2. Python 3 انسٹال کریں اور Notepad/VS Code میں اپنا کوڈ لکھیں بطور programa.nx<br>
+3. چلائیں: <code>python nexuslang_v12.py programa.nx</code>
 </div>
 </main>
 <script>
 let py=null, interp='';
 async function init(){
   py = await loadPyodide({indexURL:'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/'});
-  interp = await (await fetch('nexuslang_v13.py')).text();
+  // Cache busting: agregar timestamp unico
+  interp = await (await fetch('nexuslang_v12.py?t=' + Date.now())).text();
   document.getElementById('status').textContent='تیار ✔ — Run دبائیں';
 }
 init();
 async function run(){
-  if(!py){document.getElementById('out').textContent='ابھی لوڈ ہو رہا ہے…';return;}
+  if(!py){document.getElementById('out').textContent='ابھی لوڈ ہو رہا ہے...';return;}
   const src=document.getElementById('code').value;
   py.globals.set('user_src',src); py.globals.set('interp_src',interp);
   const r = py.runPython(`
 import sys, io, contextlib
 open('/prog.nx','w',encoding='utf-8').write(user_src)
-sys.argv=['nexuslang_v13.py','/prog.nx']
+sys.argv=['nexuslang_v12.py','/prog.nx']
 buf=io.StringIO(); err=''
 try:
-    with contextlib.redirect_stdout(buf):
-        exec(interp_src, {'__name__':'__main__'})
+    exec(interp_src, {'__name__':'__main__'})
 except Exception as e:
     err=str(e)
-buf.getvalue()+(('\\n⛔ '+err) if err else '')
+buf.getvalue()+(('\n '+err) if err else '')
 `);
   document.getElementById('out').textContent=r;
 }
