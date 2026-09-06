@@ -60,11 +60,15 @@ async function run(){
 import sys, io, contextlib
 open('/prog.nx','w',encoding='utf-8').write(user_src)
 sys.argv=['nexuslang_v12.py','/prog.nx']
-buf=io.StringIO(); err=''
+buf=io.StringIO()
+old_stdout = sys.stdout
+sys.stdout = buf
+err=''
 try:
     exec(interp_src, {'__name__':'__main__'})
 except Exception as e:
     err=str(e)
+sys.stdout = old_stdout
 buf.getvalue()+(('\n '+err) if err else '')
 `);
   document.getElementById('out').textContent=r;
