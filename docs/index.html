@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NexusLang Playground</title>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;background:#0b6b3a;color:#fff;min-height:100vh}
+header{padding:16px;text-align:center}h1{font-size:24px}
+.tag{font-size:13px;opacity:.85}
+main{max-width:760px;margin:0 auto;padding:0 12px 40px}
+textarea{width:100%;height:180px;border:0;border-radius:12px;padding:14px;font-size:16px;direction:rtl;font-family:monospace;background:#fff;color:#111}
+button{width:100%;margin:12px 0;background:#ffd166;color:#111;border:0;border-radius:12px;padding:14px;font-size:18px;font-weight:800;cursor:pointer}
+pre{background:#111;border-radius:12px;padding:14px;min-height:80px;white-space:pre-wrap;font-size:15px;color:#7CFC00}
+#status{font-size:13px;text-align:center;padding:6px}
+</style>
+</head>
+<body>
+<header><h1>Nexus<span style="color:#ffd166">Lang</span> 🇵🇰</h1>
+<div class="tag">اردو · Español · English — escribe código en tu idioma</div></header>
+<main>
+<textarea id="code">متغیر نام = "دنیا";
+لکھو("سلام " + نام);</textarea>
+<button onclick="run()">▶ چلاؤ / Run / Ejecutar</button>
+<div id="status">Cargando Python…</div>
+<pre id="out"></pre>
+</main>
+<script>
+let py=null, interp='';
+async function init(){
+  py = await loadPyodide({indexURL:'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/'});
+  interp = await (await fetch('nexuslang_v11.py')).text();
+  document.getElementById('status').textContent='Listo ✔ — tocá Run';
+}
+init();
+async function run(){
+  if(!py){document.getElementById('out').textContent='Aún cargando…';return;}
+  const src=document.getElementById('code').value;
+  py.globals.set('user_src',src); py.globals.set('interp_src',interp);
+  const r = py.runPython(`
+import sys, io, contextlib
+open('/prog.nx','w',encoding='utf-8').write(user_src)
+sys.argv=['nexuslang_v11.py','/prog.nx']
+buf=io.StringIO(); err=''
+try:
+    with contextlib.redirect_stdout(buf):
+        exec(interp_src, {'__name__':'__main__'})
+except Exception as e:
+    err=str(e)
+buf.getvalue()+(('\\n⛔ '+err) if err else '')
+`);
+  document.getElementById('out').textContent=r;
+}
+</script>
+</body>
+</html>
