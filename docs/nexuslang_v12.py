@@ -331,6 +331,7 @@ class Interp:
                 methods[mname] = {'params': params, 'start': start, 'end': self.pos}
             else:
                 self.pos += 1
+        self.consume('RBRACE')
         self.classes[name] = methods
     
     def return_stmt(self):
@@ -420,14 +421,7 @@ class Interp:
                     self.vars[p] = a
                 save = self.pos
                 self.pos = init['start']
-                brace = 1
-                while brace > 0 and self.pos < init['end']:
-                    if self.cur()['kind'] == 'LBRACE':
-                        brace += 1
-                    elif self.cur()['kind'] == 'RBRACE':
-                        brace -= 1
-                    if brace > 0:
-                        self.statement()
+                self.block()
                 self.vars = old
                 self.pos = save
             return obj
@@ -550,14 +544,7 @@ class Interp:
                         self.pos = m['start']
                         result = None
                         try:
-                            brace = 1
-                            while brace > 0 and self.pos < m['end']:
-                                if self.cur()['kind'] == 'LBRACE':
-                                    brace += 1
-                                elif self.cur()['kind'] == 'RBRACE':
-                                    brace -= 1
-                                if brace > 0:
-                                    self.statement()
+                            self.block()
                         except ReturnExc as e:
                             result = e.v
                         self.vars = old
