@@ -29,16 +29,16 @@ pre{background:#111;border-radius:12px;padding:14px;min-height:200px;font-size:1
 <div style="background:#0a5230;border-radius:12px;padding:14px;margin-top:16px;font-size:14px">
 <b>💻 پی سی کے لیے (VS Code / نوٹ پیڈ):</b><br>
 1. انٹرپریٹر ڈاؤن لوڈ کریں (صرف ایک فائل):<br>
-<a style="color:#ffd166" href="nexuslang_v12.py" download>⬇ nexuslang_v12.py</a><br>
+<a style="color:#ffd166" href="nexuslang_v13.py" download>⬇ nexuslang_v13.py</a><br>
 2. Python 3 انسٹال کریں اور Notepad/VS Code میں اپنا کوڈ لکھیں بطور <code>programa.nx</code><br>
-3. چلائیں: <code>python nexuslang_v12.py programa.nx</code>
+3. چلائیں: <code>python nexuslang_v13.py programa.nx</code>
 </div>
 </main>
 <script>
 let py=null, interp='';
 async function init(){
   py = await loadPyodide({indexURL:'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/'});
-  interp = await (await fetch('nexuslang_v12.py')).text();
+  interp = await (await fetch('nexuslang_v13.py')).text();
   document.getElementById('status').textContent='تیار ✔ — Run دبائیں';
 }
 init();
@@ -49,7 +49,7 @@ async function run(){
   const r = py.runPython(`
 import sys, io, contextlib
 open('/prog.nx','w',encoding='utf-8').write(user_src)
-sys.argv=['nexuslang_v12.py','/prog.nx']
+sys.argv=['nexuslang_v13.py','/prog.nx']
 buf=io.StringIO(); err=''
 try:
     with contextlib.redirect_stdout(buf):
