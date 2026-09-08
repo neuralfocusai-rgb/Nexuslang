@@ -772,5 +772,63 @@ document.getElementById('runBtn').addEventListener('click', runCode);
 // Load on startup
 loadInterpreter();
 </script>
+
+<style>
+.nx-bar{display:flex;gap:6px;align-items:center;margin:6px 0;flex-wrap:wrap}
+.nx-pal{display:flex;gap:4px;overflow-x:auto;width:100%;padding:4px 0}
+.nx-pal button{flex:0 0 auto;background:#0e3d22;color:#b6f0c6;border:1px solid #1d6b3a;border-radius:8px;padding:6px 10px;font-size:14px}
+.nx-bar select,.nx-bar button.act,.nx-bar span.act{background:#0e3d22;color:#e8f5e9;border:1px solid #1d6b3a;border-radius:8px;padding:6px 8px;font-size:13px}
+.nx-wrap{position:relative}
+.nx-gut{position:absolute;left:0;top:0;bottom:0;width:34px;overflow:hidden;background:#0b2416;color:#5a8f6d;font:12px/1.4 monospace;padding:8px 4px;text-align:right;box-sizing:border-box;white-space:pre}
+.nx-hl{position:absolute;left:34px;right:0;top:0;bottom:0;margin:0;overflow:hidden;pointer-events:none;white-space:pre-wrap;word-break:break-word;color:#e8f5e9;font:13px/1.4 monospace;padding:8px;box-sizing:border-box}
+.nx-wrap textarea{position:relative;z-index:2;background:transparent !important;color:transparent !important;caret-color:#7cfc9e;font:13px/1.4 monospace !important;padding:8px 8px 8px 42px !important;box-sizing:border-box}
+.nx-wrap.rtl .nx-gut{left:auto;right:0}
+.nx-wrap.rtl textarea{padding:8px 42px 8px 8px !important}
+.nx-wrap.rtl .nx-hl{left:0;right:34px}
+.nx-k{color:#7cfc9e;font-weight:700}.nx-s{color:#ffd479}.nx-n{color:#79b8ff}.nx-c{color:#6a737d}
+</style>
+<script>
+(function(){
+var ta=document.querySelector('textarea');if(!ta)return;
+var wrapP=ta.parentNode;
+var bar=document.createElement('div');bar.className='nx-bar';wrapP.insertBefore(bar,ta);
+var wrap=document.createElement('div');wrap.className='nx-wrap';wrapP.insertBefore(wrap,ta);wrap.appendChild(ta);
+if((ta.getAttribute('dir')||'')==='rtl'||(getComputedStyle(ta).direction==='rtl')){wrap.classList.add('rtl');}
+var gut=document.createElement('div');gut.className='nx-gut';wrap.appendChild(gut);
+var pre=document.createElement('pre');pre.className='nx-hl';pre.dir=ta.dir||'ltr';wrap.appendChild(pre);
+var KW=['کلاس','طریقہ','متغیر','نیا','لکھو','خود','جب تک','اگر','ورنہ','واپس'];
+var pal=document.createElement('div');pal.className='nx-pal';
+KW.forEach(function(k){var b=document.createElement('button');b.type='button';b.textContent=k;b.onclick=function(){ins(k);};pal.appendChild(b);});
+bar.appendChild(pal);
+var EX=[['سلام دنیا','لکھو("سلام دنیا")'],['Clase / کلاس','کلاس طالب_علم {\n    طریقہ init(نام) {\n        خود.نام = نام;\n    }\n    طریقہ دکھاؤ() {\n        لکھو("سلام " + خود.نام);\n    }\n}\nمتغیر s = نیا طالب_علم("Ali");\ns.دکھاؤ();'],['Matemática','متغیر x = 2 + 3;\nلکھو(x)']];
+var sel=document.createElement('select');sel.innerHTML='<option value="">📚 Ejemplos / Examples</option>';
+EX.forEach(function(e,i){var o=document.createElement('option');o.value=i;o.textContent=e[0];sel.appendChild(o);});
+sel.onchange=function(){if(sel.value!==''){ta.value=EX[+sel.value][1];render();}sel.value='';};
+bar.appendChild(sel);
+var sh=document.createElement('button');sh.type='button';sh.className='act';sh.textContent='🔗 Compartir';sh.onclick=share;bar.appendChild(sh);
+var sv=document.createElement('span');sv.className='act';sv.id='nx-sv';bar.appendChild(sv);
+var m=location.search.match(/[?&]c=([^&]+)/);
+if(m){try{ta.value=decodeURIComponent(escape(atob(m[1])));}catch(e){}}
+else{var d=localStorage.getItem('nx_draft');if(d)ta.value=d;}
+ta.addEventListener('input',function(){localStorage.setItem('nx_draft',ta.value);render();});
+ta.addEventListener('scroll',sync);
+function sync(){pre.scrollTop=ta.scrollTop;gut.scrollTop=ta.scrollTop;}
+function ins(t){var s=ta.selectionStart||0,e=ta.selectionEnd||0;ta.setRangeText(t+' ',s,e,'end');ta.focus();localStorage.setItem('nx_draft',ta.value);render();}
+function share(){var url=location.origin+location.pathname+'?c='+btoa(unescape(encodeURIComponent(ta.value)));if(navigator.clipboard){navigator.clipboard.writeText(url).then(function(){alert('✅ Link copiado / Copied');});}else{prompt('Copiá el link:',url);}}
+var KRE=/(کلاس|طریقہ|متغیر|نیا|لکھو|خود|جب تک|اگر|ورنہ|واپس)/;
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function enc(i){var s='';i++;while(i){s=String.fromCharCode(97+(i%26))+s;i=Math.floor(i/26);}return s;}
+function dec(s){var n=0;for(var i=0;i<s.length;i++){n=n*26+(s.charCodeAt(i)-97);}return n-1;}
+function hl(code){var store=[];var e=esc(code);
+e=e.replace(/"[^"\n]*"|'[^'\n]*'/g,function(mm){store.push(['s',mm]);return '\u0001'+enc(store.length-1)+'\u0001';});
+e=e.replace(/#[^\n]*/g,function(mm){store.push(['c',mm]);return '\u0001'+enc(store.length-1)+'\u0001';});
+e=e.replace(/\b\d+(\.\d+)?\b/g,function(mm){store.push(['n',mm]);return '\u0001'+enc(store.length-1)+'\u0001';});
+e=e.replace(KRE,function(mm){store.push(['k',mm]);return '\u0001'+enc(store.length-1)+'\u0001';});
+e=e.replace(/\u0001([a-z]+)\u0001/g,function(_,i){var it=store[dec(i)];return '<span class="nx-'+it[0]+'">'+it[1]+'</span>';});
+return e;}
+function render(){pre.innerHTML=hl(ta.value)+'\n';var n=ta.value.split('\n').length;var g='';for(var i=1;i<=n;i++)g+=i+'\n';gut.textContent=g;sync();var v=document.getElementById('nx-sv');if(v)v.textContent='💾 '+new Date().toLocaleTimeString();}
+render();
+})();
+</script>
 </body>
 </html>
