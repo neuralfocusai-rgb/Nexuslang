@@ -1,9 +1,3 @@
 {
-  "version": 2,
-  "builds": [
-    { "src": "shop_server.py", "use": "@vercel/python" }
-  ],
-  "routes": [
-    { "src": "/(.*)", "dest": "shop_server.py" }
-  ]
+  "version": 2
 }
