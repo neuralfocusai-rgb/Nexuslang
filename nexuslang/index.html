@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NexusLang Playground</title>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#0b6b3a;color:#fff;min-height:100vh}
+header{padding:16px;text-align:center}
+h1{font-size:24px}
+.tag{font-size:13px;opacity:.85}
+main{max-width:760px;margin:0 auto;padding:0 12px 40px}
+textarea{width:100%;height:280px;border:0;border-radius:12px;padding:14px;font-size:18px;direction:rtl;font-family:monospace;background:#fff;color:#111}
+button{width:100%;margin:12px 0;background:#ffd166;color:#111;border:0;border-radius:12px;padding:14px;font-size:18px;font-weight:800;cursor:pointer}
+button:hover{background:#ffc107}
+#status{font-size:13px;text-align:center;padding:6px}
+pre{background:#111;border-radius:12px;padding:14px;min-height:200px;white-space:pre-wrap;font-size:18px;color:#7CFC00;max-height:40vh;overflow-y:auto}
+.info{background:#0a5230;border-radius:12px;padding:14px;margin-top:16px;font-size:14px}
+.info a{color:#ffd166}
+</style>
+</head>
+<body>
+<header><h1>Nexus<span style="color:#ffd166">Lang</span> 🇵🇰</h1>
+<div class="tag">اردو · Español · English — اپنی زبان میں کوڈ لکھیں</div></header>
+<main>
+<textarea id="code">متغیر نام = "حماد";
+لکھو("سلام " + نام);</textarea>
+<button id="runBtn" disabled>▶ چلاؤ / Run</button>
+<div id="status">Loading Pyodide...</div>
+<pre id="out"></pre>
+<div class="info">
+<b>💻 پی سی کے لیے (VS Code / نوٹ پیڈ):</b><br>
+1. انٹرپریٹر ڈاؤن لوڈ کریں:<br>
+<a href="nexuslang_v12.py" download>⬇ nexuslang_v12.py</a><br>
+2. Python 3 + Notepad/VS Code میں کوڈ لکھیں<br>
+3. چلائیں: <code>python nexuslang_v12.py programa.nx</code>
+</div>
+</main>
+<script>
+window.NEXUS_INTERP = `#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import sys, re
+
+KW = {
+    'متغیر':'VAR','variable':'VAR','var':'VAR',
+    'لکھو':'PRINT','escribir':'PRINT','print':'PRINT',
+    'اگر':'IF','si':'IF','if':'IF',
+    'ورنہ':'ELSE','sino':'ELSE','else':'ELSE',
+    'جبکہ':'WHILE','mientras':'WHILE','while':'WHILE',
+    'برائے':'FOR','para':'FOR','for':'FOR',
+    'طریقہ':'DEF','funcion':'DEF','def':'DEF','function':'DEF',
+    'واپس':'RETURN','retornar':'RETURN','return':'RETURN',
+    'کلاس':'CLASS','clase':'CLASS','class':'CLASS',
+    'خود':'SELF','esto':'SELF','self':'SELF',
+    'نیا':'NEW','nuevo':'NEW','new':'NEW',
+    'کوشش':'TRY','intentar':'TRY','try':'TRY',
+    'پکڑو':'CATCH','capturar':'CATCH','catch':'CATCH',
+    'توڑو':'BREAK','romper':'BREAK','break':'BREAK',
+    'جاری':'CONTINUE','continuar':'CONTINUE','continue':'CONTINUE',
+    'صحيح':'TRUE','verdadero':'TRUE','true':'TRUE',
+    'غلط':'FALSE','falso':'FALSE','false':'FALSE',
+    'خالی':'NONE','nulo':'NONE','null':'NONE','none':'NONE',
+    'درآمد':'IMPORT','importar':'IMPORT','import':'IMPORT',
+}
+
+TOKENS = [
+    ('STRING', r'"[^"]*"|\\'[^\\']*\\''),
+    ('NUMBER', r'\\d+(?:\\.\\d+)?'),
+    ('COMMA', r',|،'),
+    ('SEMI', r';|؛'),
+    ('LBRACKET', r'\\['),
+    ('RBRACKET', r'\\]'),
+    ('OP2', r'==|!=|<=|>=|&&|\\|\\|'),
+    ('ASSIGN', r'='),
+    ('OP1', r'[+\\-*/%<>!]'),
+    ('LPAREN', r'\\('),
+    ('RPAREN', r'\\)'),
+    ('LBRACE', r'\\{'),
+    ('RBRACE', r'\\}'),
+    ('DOT', r'\\.'),
+    ('IDENT', r'[A-Za-z_\\u0600-\\u06FF][A-Za-z0-9_\\u0600-\\u06FF]*'),
+    ('WS', r'\\s+'),
+]
+
+def tokenize(code):
+    code = re.sub(r'//[^\\n]*', '', code)
+    rx = re.compile('|'.join(f'(?P<{n}>{p})' for n, p in TOKENS))
+    tokens = []
+    line = 1
+    for m in rx.finditer(code):
+        kind = m.lastgroup
+        val = m.group()
+        if kind == 'WS':
+            line += val.count('\\n')
+            continue
+        if kind == 'IDENT' and val in KW:
+            kind = KW[val]
+        elif kind == 'NUMBER':
+            val = float(val) if '.' in val else int(val)
+        elif kind == 'STRING':
+            val = val[1:-1]
+        elif kind in ('OP1', 'OP2'):
+            kind = 'OP'
+        tokens.append({'kind': kind, 'value': val, 'line': line})
+    tokens.append({'kind': 'EOF', 'value': None, 'line': line})
+    return tokens
+
+class ReturnExc(Exception):
+    def __init__(self, v): self.v = v
+class BreakExc(Exception): pass
+class ContExc(Exception): pass
+class NexusError(Exception):
+    def __init__(self, msg, line):
+        self.msg = msg
+        self.line = line
+        super().__init__(f"\\n⛔ غلطی لائن {line}: {msg}\\nError en línea {line}: {msg}\\nLine {line} error: {msg}")
+
+STDLIB = {
+    'input': lambda: input(),
+    'len': lambda x: len(x) if isinstance(x, (str, list)) else 0,
+    'str': str,
+    'int': lambda x: int(x) if x else 0,
+    'float': float,
+    'range': lambda *args: list(range(*args)),
+    'print': print,
+}
+
+class Interp:
+    def __init__(self):
+        self.vars = {}
+        self.functions = {}
+        self.classes = {}
+        self.tokens = []
+        self.pos = 0
+        self.output = []
+        
+    def cur(self):
+        return self.tokens[self.pos] if self.pos < len(self.tokens) else {'kind':'EOF','value':None,'line':0}
+    
+    def peek(self, n=1):
+        return self.tokens[self.pos+n] if self.pos+n < len(self.tokens) else {'kind':'EOF','value':None,'line':0}
+    
+    def consume(self, kind=None):
+        t = self.cur()
+        if kind and t['kind'] != kind:
+            raise NexusError(f"متوقع {kind} مگر ملا {t['kind']}", t['line'])
+        self.pos += 1
+        return t
+    
+    def parse(self):
+        while self.cur()['kind'] != 'EOF':
+            self.statement()
+    
+    def statement(self):
+        k = self.cur()['kind']
+        if k == 'VAR':
+            self.var_decl()
+        elif k == 'PRINT':
+            self.print_stmt()
+        elif k == 'IF':
+            self.if_stmt()
+        elif k == 'WHILE':
+            self.while_stmt()
+        elif k == 'FOR':
+            self.for_stmt()
+        elif k == 'DEF':
+            self.func_decl()
+        elif k == 'CLASS':
+            self.class_decl()
+        elif k == 'RETURN':
+            self.return_stmt()
+        elif k == 'TRY':
+            self.try_stmt()
+        elif k == 'IMPORT':
+            self.import_stmt()
+        elif k == 'BREAK':
+            self.consume('BREAK')
+            self.eat_semi()
+            raise BreakExc()
+        elif k == 'CONTINUE':
+            self.consume('CONTINUE')
+            self.eat_semi()
+            raise ContExc()
+        elif k == 'SELF' and self.peek()['kind'] == 'DOT':
+            self.consume('SELF')
+            self.consume('DOT')
+            prop = self.consume('IDENT')['value']
+            self.consume('ASSIGN')
+            v = self.expression()
+            self.eat_semi()
+            obj = self.vars.get('self')
+            if isinstance(obj, dict):
+                obj['__data__'][prop] = v
+        elif k == 'LBRACE':
+            self.block()
+        elif k == 'SEMI':
+            self.pos += 1
+        elif k == 'IDENT' and self.peek()['kind'] == 'ASSIGN':
+            name = self.consume('IDENT')['value']
+            self.consume('ASSIGN')
+            v = self.expression()
+            self.eat_semi()
+            if name in self.vars:
+                self.vars[name] = v
+            else:
+                raise NexusError(f"متغیر {name} پہلے سے موجود نہیں", self.cur()['line'])
+        else:
+            self.expression()
+            self.eat_semi()
+    
+    def eat_semi(self):
+        if self.cur()['kind'] == 'SEMI':
+            self.pos += 1
+    
+    def var_decl(self):
+        self.consume('VAR')
+        name = self.consume('IDENT')['value']
+        self.consume('ASSIGN')
+        v = self.expression()
+        self.eat_semi()
+        self.vars[name] = v
+    
+    def print_stmt(self):
+        self.consume('PRINT')
+        v = self.expression()
+        self.eat_semi()
+        self.output.append(str(v))
+    
+    def skip_block(self):
+        self.consume('LBRACE')
+        d = 1
+        while d > 0 and self.cur()['kind'] != 'EOF':
+            if self.cur()['kind'] == 'LBRACE':
+                d += 1
+            elif self.cur()['kind'] == 'RBRACE':
+                d -= 1
+            self.pos += 1
+    
+    def block(self):
+        self.consume('LBRACE')
+        while self.cur()['kind'] != 'RBRACE' and self.cur()['kind'] != 'EOF':
+            self.statement()
+        self.consume('RBRACE')
+    
+    def if_stmt(self):
+        self.consume('IF')
+        self.consume('LPAREN')
+        cond = self.expression()
+        self.consume('RPAREN')
+        if cond:
+            self.block()
+            if self.cur()['kind'] == 'ELSE':
+                self.consume('ELSE')
+                self.skip_block()
+        else:
+            self.skip_block()
+            if self.cur()['kind'] == 'ELSE':
+                self.consume('ELSE')
+                self.block()
+    
+    def while_stmt(self):
+        self.consume('WHILE')
+        self.consume('LPAREN')
+        cond_start = self.pos
+        self.expression()
+        self.consume('RPAREN')
+        body_start = self.pos
+        self.skip_block()
+        body_end = self.pos
+        while True:
+            self.pos = cond_start
+            cond = self.expression()
+            self.consume('RPAREN')
+            if not cond:
+                break
+            self.pos = body_start
+            try:
+                self.block()
+            except BreakExc:
+                break
+            except ContExc:
+                pass
+        self.pos = body_end
+    
+    def for_stmt(self):
+        self.consume('FOR')
+        self.consume('LPAREN')
+        
+        if self.cur()['kind'] == 'VAR':
+            self.consume('VAR')
+            name = self.consume('IDENT')['value']
+            self.consume('ASSIGN')
+            v = self.expression()
+            self.vars[name] = v
+        elif self.cur()['kind'] == 'IDENT' and self.peek()['kind'] == 'ASSIGN':
+            name = self.consume('IDENT')['value']
+            self.consume('ASSIGN')
+            v = self.expression()
+            self.vars[name] = v
+        
+        if self.cur()['kind'] == 'SEMI':
+            self.pos += 1
+        
+        cond_start = self.pos
+        self.expression()
+        
+        if self.cur()['kind'] == 'SEMI':
+            self.pos += 1
+        
+        inc_start = self.pos
+        self.expression()
+        self.consume('RPAREN')
+        
+        body_start = self.pos
+        self.skip_block()
+        body_end = self.pos
+        
+        while True:
+            self.pos = cond_start
+            cond = self.expression()
+            if self.cur()['kind'] == 'SEMI':
+                self.pos += 1
+            if not cond:
+                break
+            self.pos = body_start
+            try:
+                self.block()
+            except BreakExc:
+                break
+            except ContExc:
+                pass
+            self.pos = inc_start
+            self.expression()
+        self.pos = body_end
+    
+    def func_decl(self):
+        self.consume('DEF')
+        name = self.consume('IDENT')['value']
+        self.consume('LPAREN')
+        params = []
+        if self.cur()['kind'] != 'RPAREN':
+            params.append(self.consume('IDENT')['value'])
+            while self.cur()['kind'] == 'COMMA':
+                self.pos += 1
+                params.append(self.consume('IDENT')['value'])
+        self.consume('RPAREN')
+        start = self.pos
+        self.skip_block()
+        self.functions[name] = {'params': params, 'start': start, 'end': self.pos}
+    
+    def class_decl(self):
+        self.consume('CLASS')
+        name = self.consume('IDENT')['value']
+        self.consume('LBRACE')
+        methods = {}
+        while self.cur()['kind'] != 'RBRACE' and self.cur()['kind'] != 'EOF':
+            if self.cur()['kind'] == 'DEF':
+                self.consume('DEF')
+                mname = self.consume('IDENT')['value']
+                self.consume('LPAREN')
+                params = []
+                if self.cur()['kind'] != 'RPAREN':
+                    params.append(self.consume('IDENT')['value'])
+                    while self.cur()['kind'] == 'COMMA':
+                        self.pos += 1
+                        params.append(self.consume('IDENT')['value'])
+                self.consume('RPAREN')
+                start = self.pos
+                self.skip_block()
+                methods[mname] = {'params': params, 'start': start, 'end': self.pos}
+            else:
+                self.pos += 1
+        self.classes[name] = methods
+    
+    def return_stmt(self):
+        self.consume('RETURN')
+        v = self.expression()
+        self.eat_semi()
+        raise ReturnExc(v)
+    
+    def import_stmt(self):
+        self.consume('IMPORT')
+        mod = self.consume('IDENT')['value']
+        self.eat_semi()
+        if mod in STDLIB:
+            self.vars[mod] = STDLIB[mod]
+        else:
+            raise NexusError(f"ماڈیول {mod} موجود نہیں", self.cur()['line'])
+    
+    def try_stmt(self):
+        self.consume('TRY')
+        self.consume('LBRACE')
+        try_start = self.pos
+        brace_count = 1
+        while brace_count > 0 and self.cur()['kind'] != 'EOF':
+            if self.cur()['kind'] == 'LBRACE':
+                brace_count += 1
+            elif self.cur()['kind'] == 'RBRACE':
+                brace_count -= 1
+            self.pos += 1
+        try_end = self.pos - 1
+        
+        if self.cur()['kind'] == 'CATCH':
+            self.consume('CATCH')
+            self.consume('LPAREN')
+            exc_var = self.consume('IDENT')['value']
+            self.consume('RPAREN')
+            self.consume('LBRACE')
+            catch_start = self.pos
+            brace_count = 1
+            while brace_count > 0 and self.cur()['kind'] != 'EOF':
+                if self.cur()['kind'] == 'LBRACE':
+                    brace_count += 1
+                elif self.cur()['kind'] == 'RBRACE':
+                    brace_count -= 1
+                self.pos += 1
+            catch_end = self.pos - 1
+            
+            save_pos = self.pos
+            self.pos = try_start
+            try:
+                while self.pos < try_end:
+                    self.statement()
+            except Exception as e:
+                self.vars[exc_var] = str(e)
+                self.pos = catch_start
+                while self.pos < catch_end:
+                    self.statement()
+            self.pos = save_pos
+    
+    def call_function(self, name, args):
+        if name in self.functions:
+            f = self.functions[name]
+            if len(args) != len(f['params']):
+                raise NexusError(f"Function {name} expects {len(f['params'])} args, got {len(args)}", 0)
+            old = self.vars.copy()
+            for p, a in zip(f['params'], args):
+                self.vars[p] = a
+            save = self.pos
+            self.pos = f['start']
+            result = None
+            try:
+                self.block()
+            except ReturnExc as e:
+                result = e.v
+            self.vars = old
+            self.pos = save
+            return result
+        elif name in self.classes:
+            cls = self.classes[name]
+            obj = {'__class__': name, '__data__': {}}
+            if 'init' in cls:
+                init = cls['init']
+                if len(args) != len(init['params']):
+                    raise NexusError(f"Constructor expects {len(init['params'])} args", 0)
+                old = self.vars.copy()
+                self.vars['self'] = obj
+                for p, a in zip(init['params'], args):
+                    self.vars[p] = a
+                save = self.pos
+                self.pos = init['start']
+                brace = 1
+                while brace > 0 and self.pos < init['end']:
+                    if self.cur()['kind'] == 'LBRACE':
+                        brace += 1
+                    elif self.cur()['kind'] == 'RBRACE':
+                        brace -= 1
+                    if brace > 0:
+                        self.statement()
+                self.vars = old
+                self.pos = save
+            return obj
+        else:
+            raise NexusError(f"Function {name} not defined", 0)
+    
+    def expression(self):
+        return self.assignment()
+    
+    def assignment(self):
+        left = self.or_expr()
+        if self.cur()['kind'] == 'ASSIGN':
+            self.pos += 1
+            right = self.assignment()
+            if isinstance(left, str) and left in self.vars:
+                self.vars[left] = right
+                return right
+            elif isinstance(left, dict) and '__class__' in left and 'prop' in left:
+                left['__data__'][left['prop']] = right
+                return right
+            elif isinstance(left, list) and 'index' in left:
+                left[left['index']] = right
+                return right
+        return left
+    
+    def or_expr(self):
+        left = self.and_expr()
+        while self.cur()['kind'] == 'OP' and self.cur()['value'] == '||':
+            self.pos += 1
+            left = left or self.and_expr()
+        return left
+    
+    def and_expr(self):
+        left = self.equality()
+        while self.cur()['kind'] == 'OP' and self.cur()['value'] == '&&':
+            self.pos += 1
+            left = left and self.equality()
+        return left
+    
+    def equality(self):
+        left = self.comparison()
+        while self.cur()['kind'] == 'OP' and self.cur()['value'] in ('==', '!='):
+            op = self.consume()['value']
+            right = self.comparison()
+            left = (left == right) if op == '==' else (left != right)
+        return left
+    
+    def comparison(self):
+        left = self.term()
+        while self.cur()['kind'] == 'OP' and self.cur()['value'] in ('<', '>', '<=', '>='):
+            op = self.consume()['value']
+            right = self.term()
+            if op == '<': left = left < right
+            elif op == '>': left = left > right
+            elif op == '<=': left = left <= right
+            else: left = left >= right
+        return left
+    
+    def term(self):
+        left = self.factor()
+        while self.cur()['kind'] == 'OP' and self.cur()['value'] in ('+', '-'):
+            op = self.consume()['value']
+            right = self.factor()
+            if op == '+':
+                left = str(left) + str(right) if isinstance(left, str) or isinstance(right, str) else left + right
+            else:
+                left = left - right
+        return left
+    
+    def factor(self):
+        left = self.unary()
+        while self.cur()['kind'] == 'OP' and self.cur()['value'] in ('*', '/', '%'):
+            op = self.consume()['value']
+            right = self.unary()
+            if op == '*': left = left * right
+            elif op == '/': left = left / right
+            else: left = left % right
+        return left
+    
+    def unary(self):
+        if self.cur()['kind'] == 'OP' and self.cur()['value'] in ('-', '!'):
+            op = self.consume()['value']
+            v = self.unary()
+            return -v if op == '-' else (not v)
+        return self.call()
+    
+    def call(self):
+        expr = self.primary()
+        while True:
+            if self.cur()['kind'] == 'LPAREN':
+                self.pos += 1
+                args = []
+                if self.cur()['kind'] != 'RPAREN':
+                    args.append(self.expression())
+                    while self.cur()['kind'] == 'COMMA':
+                        self.pos += 1
+                        args.append(self.expression())
+                self.consume('RPAREN')
+                if isinstance(expr, str) and expr in self.functions:
+                    expr = self.call_function(expr, args)
+                elif isinstance(expr, str) and expr in STDLIB:
+                    expr = STDLIB[expr](*args)
+                elif isinstance(expr, str) and expr in self.classes:
+                    expr = self.call_function(expr, args)
+                elif isinstance(expr, dict) and '__class__' in expr and 'name' in expr:
+                    cls = self.classes[expr['__class__']]
+                    mname = expr['name']
+                    if mname in cls:
+                        m = cls[mname]
+                        if len(args) != len(m['params']):
+                            raise NexusError(f"Method {mname} expects {len(m['params'])} args", 0)
+                        old = self.vars.copy()
+                        if 'obj' in expr:
+                            self.vars['self'] = expr['obj']
+                        else:
+                            self.vars['self'] = expr
+                        for p, a in zip(m['params'], args):
+                            self.vars[p] = a
+                        save = self.pos
+                        self.pos = m['start']
+                        result = None
+                        try:
+                            brace = 1
+                            while brace > 0 and self.pos < m['end']:
+                                if self.cur()['kind'] == 'LBRACE':
+                                    brace += 1
+                                elif self.cur()['kind'] == 'RBRACE':
+                                    brace -= 1
+                                if brace > 0:
+                                    self.statement()
+                        except ReturnExc as e:
+                            result = e.v
+                        self.vars = old
+                        self.pos = save
+                        expr = result
+                    else:
+                        raise NexusError(f"Method {mname} not found", 0)
+                else:
+                    raise NexusError(f"{expr} is not callable", 0)
+            elif self.cur()['kind'] == 'DOT' and isinstance(expr, dict) and '__class__' in expr:
+                self.pos += 1
+                mname = self.consume('IDENT')['value']
+                if self.cur()['kind'] == 'LPAREN':
+                    expr = {'__class__': expr['__class__'], 'name': mname, 'obj': expr}
+                else:
+                    expr = expr['__data__'].get(mname)
+            elif self.cur()['kind'] == 'LBRACKET' and isinstance(expr, list):
+                self.pos += 1
+                idx = self.expression()
+                self.consume('RBRACKET')
+                if isinstance(idx, int) and 0 <= idx < len(expr):
+                    expr = expr[idx]
+                else:
+                    raise NexusError(f"Index {idx} out of bounds", 0)
+            else:
+                break
+        return expr
+    
+    def primary(self):
+        t = self.cur()
+        if t['kind'] == 'NUMBER':
+            self.pos += 1
+            return t['value']
+        if t['kind'] == 'STRING':
+            self.pos += 1
+            return t['value']
+        if t['kind'] == 'TRUE':
+            self.pos += 1
+            return True
+        if t['kind'] == 'FALSE':
+            self.pos += 1
+            return False
+        if t['kind'] == 'NONE':
+            self.pos += 1
+            return None
+        if t['kind'] == 'LBRACKET':
+            self.pos += 1
+            arr = []
+            if self.cur()['kind'] != 'RBRACKET':
+                arr.append(self.expression())
+                while self.cur()['kind'] == 'COMMA':
+                    self.pos += 1
+                    arr.append(self.expression())
+            self.consume('RBRACKET')
+            return arr
+        if t['kind'] == 'NEW':
+            self.pos += 1
+            cname = self.consume('IDENT')['value']
+            if cname in self.classes:
+                return cname
+            else:
+                raise NexusError(f"Class {cname} not defined", t['line'])
+        if t['kind'] == 'SELF':
+            self.pos += 1
+            return self.vars.get('self')
+        if t['kind'] == 'IDENT':
+            self.pos += 1
+            name = t['value']
+            if name in self.vars:
+                return self.vars[name]
+            if name in self.functions:
+                return name
+            raise NexusError(f"Variable {name} not defined", t['line'])
+        if t['kind'] == 'LPAREN':
+            self.pos += 1
+            v = self.expression()
+            self.consume('RPAREN')
+            return v
+        raise NexusError(f"Unexpected token: {t['value']}", t['line'])
+
+def run_code(code):
+    try:
+        it = Interp()
+        it.tokens = tokenize(code)
+        it.parse()
+        return '\\n'.join(it.output)
+    except Exception as e:
+        return str(e)
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print("Usage: python nexuslang_v12.py <file.nx>")
+        sys.exit(1)
+    with open(sys.argv[1], encoding='utf-8') as f:
+        code = f.read()
+    print(run_code(code))
+`;
+let pyodide = null;
+let interpreterCode = '';
+
+async function loadInterpreter() {
+    try {
+        pyodide = await loadPyodide({
+            indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/'
+        });
+        
+        // Load interpreter with cache busting
+        interpreterCode = window.NEXUS_INTERP;
+        
+        document.getElementById('status').textContent = '✅ Ready — Click Run';
+        document.getElementById('runBtn').disabled = false;
+    } catch (err) {
+        document.getElementById('status').textContent = '⛔ Error: ' + err.message;
+    }
+}
+
+async function runCode() {
+    if (!pyodide) {
+        document.getElementById('out').textContent = 'Still loading...';
+        return;
+    }
+    
+    const userCode = document.getElementById('code').value;
+    const output = document.getElementById('out');
+    
+    output.textContent = 'Running...';
+    
+    try {
+        // Set up globals
+        pyodide.globals.set('userCode', userCode);
+        pyodide.globals.set('interpreterCode', interpreterCode);
+        
+        // Execute
+        const result = pyodide.runPython(`
+import sys
+import io
+
+# Write user code to file
+with open('/program.nx', 'w', encoding='utf-8') as f:
+    f.write(userCode)
+
+# Set argv
+sys.argv = ['nexuslang_v12.py', '/program.nx']
+
+# Capture stdout
+old_stdout = sys.stdout
+sys.stdout = captured = io.StringIO()
+
+error_msg = ''
+try:
+    # Execute interpreter
+    exec(interpreterCode, {'__name__': '__main__'})
+except Exception as e:
+    error_msg = '\\n⛔ Error: ' + str(e)
+finally:
+    # Always restore stdout even if exec breaks unexpectedly
+    sys.stdout = old_stdout
+
+captured.getvalue() + error_msg
+`);
+        
+        output.textContent = result || '(no output)';
+    } catch (err) {
+        output.textContent = '⛔ Runtime Error: ' + err.message;
+    }
+}
+
+// Event listeners
+document.getElementById('runBtn').addEventListener('click', runCode);
+
+// Load on startup
+loadInterpreter();
+</script>
+
+<style>
+.nx-bar{display:flex;gap:6px;align-items:center;margin:6px 0;flex-wrap:wrap}
+.nx-pal{display:flex;gap:4px;overflow-x:auto;width:100%;padding:4px 0}
+.nx-pal button{flex:0 0 auto;background:#0e3d22;color:#b6f0c6;border:1px solid #1d6b3a;border-radius:8px;padding:6px 10px;font-size:14px}
+.nx-bar select,.nx-bar button.act,.nx-bar span.act{background:#0e3d22;color:#e8f5e9;border:1px solid #1d6b3a;border-radius:8px;padding:6px 8px;font-size:13px}
+.nx-wrap{position:relative}
+.nx-gut{position:absolute;left:0;top:0;bottom:0;width:34px;overflow:hidden;background:#0b2416;color:#5a8f6d;font:12px/1.4 monospace;padding:8px 4px;text-align:right;box-sizing:border-box;white-space:pre}
+.nx-hl{position:absolute;left:34px;right:0;top:0;bottom:0;margin:0;overflow:hidden;pointer-events:none;white-space:pre-wrap;word-break:break-word;color:#e8f5e9;font:13px/1.4 monospace;padding:8px;box-sizing:border-box}
+.nx-wrap textarea{position:relative;z-index:2;background:transparent !important;color:transparent !important;caret-color:#7cfc9e;font:13px/1.4 monospace !important;padding:8px 8px 8px 42px !important;box-sizing:border-box}
+.nx-wrap.rtl .nx-gut{left:auto;right:0}
+.nx-wrap.rtl textarea{padding:8px 42px 8px 8px !important}
+.nx-wrap.rtl .nx-hl{left:0;right:34px}
+.nx-k{color:#7cfc9e;font-weight:700}.nx-s{color:#ffd479}.nx-n{color:#79b8ff}.nx-c{color:#6a737d}
+</style>
+<script>
+(function(){
+var ta=document.querySelector('textarea');if(!ta)return;
+var wrapP=ta.parentNode;
+var bar=document.createElement('div');bar.className='nx-bar';wrapP.insertBefore(bar,ta);
+var wrap=document.createElement('div');wrap.className='nx-wrap';wrapP.insertBefore(wrap,ta);wrap.appendChild(ta);
+if((ta.getAttribute('dir')||'')==='rtl'||(getComputedStyle(ta).direction==='rtl')){wrap.classList.add('rtl');}
+var gut=document.createElement('div');gut.className='nx-gut';wrap.appendChild(gut);
+var pre=document.createElement('pre');pre.className='nx-hl';pre.dir=ta.dir||'ltr';wrap.appendChild(pre);
+var KW=['کلاس','طریقہ','متغیر','نیا','لکھو','خود','جب تک','اگر','ورنہ','واپس'];
+var pal=document.createElement('div');pal.className='nx-pal';
+KW.forEach(function(k){var b=document.createElement('button');b.type='button';b.textContent=k;b.onclick=function(){ins(k);};pal.appendChild(b);});
+bar.appendChild(pal);
+var EX=[['سلام دنیا','لکھو("سلام دنیا")'],['Clase / کلاس','کلاس طالب_علم {\n    طریقہ init(نام) {\n        خود.نام = نام;\n    }\n    طریقہ دکھاؤ() {\n        لکھو("سلام " + خود.نام);\n    }\n}\nمتغیر s = نیا طالب_علم("Ali");\ns.دکھاؤ();'],['Matemática','متغیر x = 2 + 3;\nلکھو(x)']];
+var sel=document.createElement('select');sel.innerHTML='<option value="">📚 Ejemplos / Examples</option>';
+EX.forEach(function(e,i){var o=document.createElement('option');o.value=i;o.textContent=e[0];sel.appendChild(o);});
+sel.onchange=function(){if(sel.value!==''){ta.value=EX[+sel.value][1];render();}sel.value='';};
+bar.appendChild(sel);
+var sh=document.createElement('button');sh.type='button';sh.className='act';sh.textContent='🔗 Compartir';sh.onclick=share;bar.appendChild(sh);
+var sv=document.createElement('span');sv.className='act';sv.id='nx-sv';bar.appendChild(sv);
+var m=location.search.match(/[?&]c=([^&]+)/);
+if(m){try{ta.value=decodeURIComponent(escape(atob(m[1])));}catch(e){}}
+else{var d=localStorage.getItem('nx_draft');if(d)ta.value=d;}
+ta.addEventListener('input',function(){localStorage.setItem('nx_draft',ta.value);render();});
+ta.addEventListener('scroll',sync);
+function sync(){pre.scrollTop=ta.scrollTop;gut.scrollTop=ta.scrollTop;}
+function ins(t){var s=ta.selectionStart||0,e=ta.selectionEnd||0;ta.setRangeText(t+' ',s,e,'end');ta.focus();localStorage.setItem('nx_draft',ta.value);render();}
+function share(){var url=location.origin+location.pathname+'?c='+btoa(unescape(encodeURIComponent(ta.value)));if(navigator.clipboard){navigator.clipboard.writeText(url).then(function(){alert('✅ Link copiado / Copied');});}else{prompt('Copiá el link:',url);}}
+var KRE=/(کلاس|طریقہ|متغیر|نیا|لکھو|خود|جب تک|اگر|ورنہ|واپس)/;
+function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function enc(i){var s='';i++;while(i){s=String.fromCharCode(97+(i%26))+s;i=Math.floor(i/26);}return s;}
+function dec(s){var n=0;for(var i=0;i<s.length;i++){n=n*26+(s.charCodeAt(i)-97);}return n-1;}
+function hl(code){var store=[];var e=esc(code);
+e=e.replace(/"[^"\n]*"|'[^'\n]*'/g,function(mm){store.push(['s',mm]);return '\u0001'+enc(store.length-1)+'\u0001';});
+e=e.replace(/#[^\n]*/g,function(mm){store.push(['c',mm]);return '\u0001'+enc(store.length-1)+'\u0001';});
+e=e.replace(/\b\d+(\.\d+)?\b/g,function(mm){store.push(['n',mm]);return '\u0001'+enc(store.length-1)+'\u0001';});
+e=e.replace(KRE,function(mm){store.push(['k',mm]);return '\u0001'+enc(store.length-1)+'\u0001';});
+e=e.replace(/\u0001([a-z]+)\u0001/g,function(_,i){var it=store[dec(i)];return '<span class="nx-'+it[0]+'">'+it[1]+'</span>';});
+return e;}
+function render(){pre.innerHTML=hl(ta.value)+'\n';var n=ta.value.split('\n').length;var g='';for(var i=1;i<=n;i++)g+=i+'\n';gut.textContent=g;sync();var v=document.getElementById('nx-sv');if(v)v.textContent='💾 '+new Date().toLocaleTimeString();}
+render();
+})();
+</script>
+</body>
+</html>

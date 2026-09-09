@@ -1,0 +1,74 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NexusShop</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui;background:#f5f5f5;padding-bottom:70px}
+header{position:sticky;top:0;background:#7c3aed;color:#fff;padding:10px 16px;z-index:9;display:flex;justify-content:space-between;align-items:center}
+.logo{font-weight:800;font-size:20px}.logo span{color:#ffd166}
+.lang a{color:#fff;text-decoration:none;margin-left:8px;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:16px}
+.card{background:#fff;border-radius:10px;padding:14px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.1);cursor:pointer}
+.card .em{font-size:40px}.card img{width:60px;height:60px;object-fit:cover;border-radius:8px}
+.card h3{font-size:14px;margin:6px 0}.card .p{color:#7c3aed;font-weight:700}
+.stores{display:flex;gap:10px;overflow-x:auto;padding:16px}
+.store{background:#fff;border-radius:10px;padding:12px 18px;min-width:120px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.1);cursor:pointer}
+.bar{position:fixed;bottom:0;left:0;right:0;background:#7c3aed;color:#fff;padding:14px;display:flex;justify-content:space-between;cursor:pointer}
+button{background:#7c3aed;color:#fff;border:0;border-radius:8px;padding:10px 16px;font-size:15px;width:100%;margin-top:8px}
+.pay{padding:16px}.pay .m{background:#fff;border-radius:10px;padding:14px;margin:8px 0;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.stars{color:#f59e0b}
+</style></head><body>
+<header><div class="logo">🛍️ Nexus<span>Shop</span></div>
+<div class="lang"><a href="#" onclick="setLang('en')">EN</a><a href="#" onclick="setLang('es')">ES</a><a href="#" onclick="setLang('ur')">اردو</a></div></header>
+<div id="app"></div>
+<div class="bar" onclick="go('cart')"><span id="bartxt">🛒 Cart</span><span id="bartot"></span></div>
+<script>
+var DATA=__DATA__;
+var L={en:{cart:"🛒 Cart",add:"Add to cart",checkout:"Checkout",total:"Total",back:"← Back",pay:"Choose payment",reviews:"Reviews",all:"All products"},
+es:{cart:"🛒 Carrito",add:"Agregar",checkout:"Comprar",total:"Total",back:"← Volver",pay:"Elegí cómo pagar",reviews:"Reseñas",all:"Todos los productos"},
+ur:{cart:"🛒 ٹوکری",add:"شامل کریں",checkout:"خریدیں",total:"کل",back:"← واپس",pay:"ادائیگی منتخب کریں",reviews:"جائزے",all:"تمام مصنوعات"}};
+var lang=localStorage.getItem("nx_lang")||"en";
+function t(k){return (L[lang]&&L[lang][k])||L.en[k];}
+function setLang(l){lang=l;localStorage.setItem("nx_lang",l);render();}
+function go(r){location.hash="#/"+r;}
+var mref=location.search.match(/[?&]ref=([A-Za-z0-9_]+)/);if(mref)localStorage.setItem("nx_ref",mref[1]);
+function gc(){try{return JSON.parse(localStorage.getItem("nx_cart")||"{}")}catch(e){return{}}}
+function sc(c){localStorage.setItem("nx_cart",JSON.stringify(c));bar();}
+function allp(){var out=[];for(var s in DATA.tiendas){var ti=DATA.tiendas[s];(ti.productos||[]).forEach(function(p,i){out.push({s:s,ti:ti,p:p,i:i});});}return out;}
+function bar(){var c=gc(),n=0,tot=0;for(var k in c){n+=c[k].q;tot+=c[k].q*c[k].p;}document.getElementById("bartxt").textContent=t("cart")+" ("+n+")";document.getElementById("bartot").textContent=tot?"Rs. "+tot:"";}
+function img(p){return p.img?"<img src='"+p.img+"'>":"<div class='em'>"+(p.emoji||"🛍️")+"</div>";}
+function stars(r){var n=(r||[]).length;if(!n)return"";var s=0;r.forEach(function(x){s+=(x.estrellas||5);});return "<div class='stars'>"+"★".repeat(Math.round(s/n))+" "+(s/n).toFixed(1)+"</div>";}
+function home(){var h="<div class='stores'>";for(var s in DATA.tiendas){var ti=DATA.tiendas[s];h+="<div class='store' onclick=\"go('store/"+s+"')\"><div style='font-size:30px'>"+(ti.emoji||"🏪")+"</div><b>"+ti.nombre+"</b>"+stars(ti.resenas)+"</div>";}
+h+="</div><h3 style='padding:0 16px'>"+t("all")+"</h3><div class='grid'>";
+allp().forEach(function(x,idx){h+="<div class='card' onclick=\"go('p/"+idx+"')\">"+img(x.p)+"<h3>"+x.p.nombre+"</h3><div class='p'>Rs. "+x.p.precio+"</div></div>";});
+return h+"</div>";}
+function store(s){var ti=DATA.tiendas[s];if(!ti)return home();var h="<div style='padding:16px'><a href='#/'>"+t("back")+"</a><h2>"+(ti.emoji||"🏪")+" "+ti.nombre+"</h2>"+stars(ti.resenas)+"</div><div class='grid'>";
+allp().forEach(function(x,idx){if(x.s===s)h+="<div class='card' onclick=\"go('p/"+idx+"')\">"+img(x.p)+"<h3>"+x.p.nombre+"</h3><div class='p'>Rs. "+x.p.precio+"</div></div>";});
+return h+"</div>";}
+function prod(idx){var x=allp()[idx];if(!x)return home();var p=x.p;
+return "<div style='padding:16px'><a href='#/'>"+t("back")+"</a><div style='background:#fff;border-radius:12px;padding:20px;text-align:center'>"+img(p)+"<h2>"+p.nombre+"</h2><div class='p' style='font-size:20px'>Rs. "+p.precio+"</div>"+stars(x.ti.resenas)+"<button onclick=\"add("+idx+")\">"+t("add")+"</button></div><h3 style='margin-top:14px'>"+t("reviews")+"</h3>"+(x.ti.resenas||[]).map(function(r){return "<div style='background:#fff;padding:10px;border-radius:8px;margin:6px 0' class='stars'>"+"★".repeat(r.estrellas||5)+" <span style='color:#333'>"+(r.comentario||"")+"</span></div>";}).join("")+"</div>";}
+function add(idx){var x=allp()[idx],c=gc(),k=x.s+x.i;c[k]=c[k]||{n:x.p.nombre,p:x.p.precio,q:0,w:x.ti.whatsapp};c[k].q++;sc(c);alert("✅ "+x.p.nombre);}
+function cart(){var c=gc(),h="<div style='padding:16px'><h2>"+t("cart")+"</h2>",tot=0,empty=true;
+for(var k in c){empty=false;var it=c[k];tot+=it.q*it.p;h+="<div style='background:#fff;padding:12px;border-radius:8px;margin:8px 0;display:flex;justify-content:space-between'><span>"+it.n+" x"+it.q+"</span><span>Rs. "+(it.q*it.p)+" <a href='#' onclick=\"rm('"+k+"')\">✖</a></span></div>";}
+if(empty)return h+"<p>Empty</p></div>";
+return h+"<h3>"+t("total")+": Rs. "+tot+"</h3><button onclick=\"checkout()\">"+t("checkout")+"</button></div>";}
+function rm(k){var c=gc();delete c[k];sc(c);render();}
+function checkout(){var c=gc(),items=[],tot=0,wa="923000000000";for(var k in c){items.push({k:k,n:c[k].n,p:c[k].p,q:c[k].q});tot+=c[k].q*c[k].p;wa=c[k].w||wa;}
+var oid="NS-"+Math.random().toString(16).slice(2,9).toUpperCase();
+var order={id:oid,items:items,total:tot,w:wa,status:"pending_payment",ref:localStorage.getItem("nx_ref")||"",ts:new Date().toISOString().slice(0,10)};
+localStorage.setItem("nx_order_"+oid,JSON.stringify(order));
+localStorage.setItem("nx_cart","{}");bar();go("pay/"+oid);}
+function pay(oid){var o=JSON.parse(localStorage.getItem("nx_order_"+oid)||"null");if(!o)return "<p>Order not found</p>";
+var itemsTxt=o.items.map(function(i){return i.q+"x "+i.n;}).join(", ");
+var walink="https://wa.me/"+(o.w||"923000000000")+"?text="+encodeURIComponent("Order "+oid+": "+itemsTxt+" - Total Rs. "+o.total);
+return "<div class='pay'><h2>Order "+oid+"</h2><h3>"+t("total")+": Rs. "+o.total+"</h3><p>"+t("pay")+":</p>"+
+"<div class='m'>💳 Card / PayPal</div><div class='m'>📱 JazzCash / Easypaisa</div><div class='m'>🏦 Bank transfer</div><div class='m'>💵 Cash on delivery</div>"+
+"<a href='"+walink+"'><button style='background:#25d366'>📲 Confirm by WhatsApp</button></a></div>";}
+function render(){var h=location.hash||"#/";var app=document.getElementById("app");
+if(h.indexOf("#/store/")===0)app.innerHTML=store(h.slice(8));
+else if(h.indexOf("#/p/")===0)app.innerHTML=prod(parseInt(h.slice(4)));
+else if(h==="#/cart")app.innerHTML=cart();
+else if(h.indexOf("#/pay/")===0)app.innerHTML=pay(h.slice(6));
+else app.innerHTML=home();
+bar();}
+window.onhashchange=render;render();
+</script></body></html>
