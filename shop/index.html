@@ -1,74 +1,157 @@
 <!DOCTYPE html><html><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#046A38">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon.svg">
 <title>NexusShop</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui;background:#f5f5f5;padding-bottom:70px}
-header{position:sticky;top:0;background:#7c3aed;color:#fff;padding:10px 16px;z-index:9;display:flex;justify-content:space-between;align-items:center}
-.logo{font-weight:800;font-size:20px}.logo span{color:#ffd166}
-.lang a{color:#fff;text-decoration:none;margin-left:8px;font-size:13px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:16px}
-.card{background:#fff;border-radius:10px;padding:14px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.1);cursor:pointer}
-.card .em{font-size:40px}.card img{width:60px;height:60px;object-fit:cover;border-radius:8px}
-.card h3{font-size:14px;margin:6px 0}.card .p{color:#7c3aed;font-weight:700}
-.stores{display:flex;gap:10px;overflow-x:auto;padding:16px}
-.store{background:#fff;border-radius:10px;padding:12px 18px;min-width:120px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.1);cursor:pointer}
-.bar{position:fixed;bottom:0;left:0;right:0;background:#7c3aed;color:#fff;padding:14px;display:flex;justify-content:space-between;cursor:pointer}
-button{background:#7c3aed;color:#fff;border:0;border-radius:8px;padding:10px 16px;font-size:15px;width:100%;margin-top:8px}
-.pay{padding:16px}.pay .m{background:#fff;border-radius:10px;padding:14px;margin:8px 0;box-shadow:0 1px 3px rgba(0,0,0,.1)}
-.stars{color:#f59e0b}
+:root{--pk:#046A38;--pkd:#01411C;--gold:#ffd166}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui;background:#f4f6f4;padding-bottom:64px}
+#splash{position:fixed;inset:0;background:linear-gradient(160deg,var(--pk),var(--pkd));z-index:99;display:flex;align-items:center;justify-content:center;color:#fff;text-align:center;padding:20px}
+#splash.hide{display:none}
+.sp-in{animation:up .6s ease}
+@keyframes up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.sp-in svg{width:90px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+.sp-in h1{font-size:34px;margin:10px 0 4px}.sp-in h1 span{color:var(--gold)}
+.tag{opacity:.92;font-size:14px;line-height:1.7;margin:8px 0 16px}
+.sp-lang a{display:inline-block;color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:20px;padding:5px 14px;margin:0 4px;text-decoration:none;font-size:13px}
+.enter{background:var(--gold);color:var(--pkd);font-weight:900;font-size:17px;border-radius:30px;padding:15px 34px;width:auto;margin-top:20px;box-shadow:0 8px 22px rgba(0,0,0,.4);cursor:pointer;border:0}
+header{position:sticky;top:0;background:var(--pk);color:#fff;padding:8px 14px;z-index:9;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.logo{font-weight:800;font-size:19px;display:flex;align-items:center;gap:6px}.logo span{color:var(--gold)}
+.hdr a{color:#fff;text-decoration:none;margin-left:10px;font-size:13px}
+.hero{background:linear-gradient(135deg,var(--pk),var(--pkd));color:#fff;padding:20px 16px;text-align:center}
+.hero h2{font-size:21px}.hero p{opacity:.9;font-size:13px;margin:4px 0 10px}
+.hero input{width:100%;max-width:420px;padding:11px;border:0;border-radius:24px;font-size:15px}
+.sec{padding:12px 14px 4px;font-weight:800;color:var(--pkd);font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;padding:10px 14px}
+.card{background:#fff;border-radius:12px;padding:12px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.12);cursor:pointer;overflow:hidden}
+.card .em{font-size:44px}.card img{width:100%;height:110px;object-fit:cover;border-radius:8px}
+.card h3{font-size:13px;margin:6px 0}.card .p{color:var(--pk);font-weight:800}
+.stores{display:flex;gap:10px;overflow-x:auto;padding:10px 14px}
+.store{background:#fff;border-radius:12px;padding:12px 16px;min-width:130px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.12);cursor:pointer}
+.store .em{font-size:30px}
+.cta{background:var(--gold);border-radius:14px;margin:12px 14px;padding:16px;text-align:center;cursor:pointer;color:var(--pkd);font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.bar{position:fixed;bottom:0;left:0;right:0;background:var(--pkd);color:#fff;padding:14px;display:flex;justify-content:space-between;cursor:pointer;font-weight:700}
+button{background:var(--pk);color:#fff;border:0;border-radius:10px;padding:12px 16px;font-size:15px;width:100%;margin-top:8px;font-weight:700}
+button.wa{background:#25d366}
+.box{background:#fff;border-radius:12px;padding:16px;margin:12px;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.pay .m{background:#fff;border-radius:10px;padding:13px;margin:8px 0;box-shadow:0 1px 4px rgba(0,0,0,.1);cursor:pointer;border:2px solid transparent}
+.pay .m.sel{border-color:var(--pk);background:#eaf5ef}
+input,select{width:100%;padding:11px;margin:5px 0;border:1px solid #ccc;border-radius:10px;font-size:15px}
+.stars{color:#f59e0b}.muted{color:#666;font-size:13px}
+footer{background:var(--pkd);color:#cfe8d8;padding:18px 16px;font-size:13px;margin-top:20px}
+footer a{color:#fff;text-decoration:none;margin-right:12px}
+.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee}
+a.back{color:var(--pk);text-decoration:none;font-weight:700}
 </style></head><body>
-<header><div class="logo">🛍️ Nexus<span>Shop</span></div>
-<div class="lang"><a href="#" onclick="setLang('en')">EN</a><a href="#" onclick="setLang('es')">ES</a><a href="#" onclick="setLang('ur')">اردو</a></div></header>
+<div id="splash"><div class="sp-in">
+<svg viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#fff"/><path d="M14 18h6l6 24h20l6-16H24" fill="none" stroke="#046A38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="30" cy="50" r="4" fill="#ffd166"/><circle cx="44" cy="50" r="4" fill="#ffd166"/></svg>
+<h1>Nexus<span>Shop</span></h1>
+<p class="tag">Your store. Your country. Your income.<br>Tu tienda. Tu país. Tu ingreso.<br>آپ کی دکان۔ آپ کا ملک۔ آپ کی کمائی۔</p>
+<div class="sp-lang"><a href="#" onclick="setLang('en')">English</a><a href="#" onclick="setLang('es')">Español</a><a href="#" onclick="setLang('ur')">اردو</a></div>
+<button class="enter" onclick="enterShop()">Enter · Entrar · داخل کریں</button>
+</div></div>
+<header><div class="logo"><svg viewBox="0 0 64 64" width="26"><rect width="64" height="64" rx="14" fill="#fff"/><path d="M14 18h6l6 24h20l6-16H24" fill="none" stroke="#046A38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="30" cy="50" r="5" fill="#ffd166"/><circle cx="44" cy="50" r="5" fill="#ffd166"/></svg>Nexus<span>Shop</span></div>
+<div class="hdr"><a href="#/track">📦</a><a href="#/sell">🏪</a><a href="#" onclick="setLang('en')">EN</a><a href="#" onclick="setLang('es')">ES</a><a href="#" onclick="setLang('ur')">اردو</a></div></header>
 <div id="app"></div>
 <div class="bar" onclick="go('cart')"><span id="bartxt">🛒 Cart</span><span id="bartot"></span></div>
+<footer>
+<a href="#/terms">Terms & Conditions</a><a href="#/privacy">Privacy Policy</a><a href="#/track">Track Order</a><a href="#/sell">Open your store</a>
+<p style="margin-top:10px">© 2026 NexusShop · Built in Argentina 🇦🇷 for Pakistan 🇵🇰 and the world · Partners: add ?ref=CODE</p>
+</footer>
 <script>
 var DATA={"tiendas": {"karachi_electronics": {"nombre": "Karachi Electronics", "whatsapp": "923001234567", "emoji": "📱", "resenas": [{"estrellas": 5, "comentario": "بہترین سروس"}, {"estrellas": 4, "comentario": "Fast delivery"}], "productos": [{"nombre": "Smart Watch", "precio": 2499, "emoji": "⌚", "categoria": "Electronics", "desc": "Bluetooth, heart rate, waterproof."}, {"nombre": "Wireless Earbuds", "precio": 1899, "emoji": "🎧", "categoria": "Electronics", "desc": "Noise cancellation, 24hr battery."}, {"nombre": "Power Bank 20000mAh", "precio": 3200, "emoji": "🔋", "categoria": "Electronics", "desc": "Fast charging, dual USB."}]}, "lahore_fashion": {"nombre": "Lahore Fashion", "whatsapp": "923009876543", "emoji": "👗", "resenas": [{"estrellas": 5, "comentario": "Beautiful collection!"}, {"estrellas": 5, "comentario": "بہت اچھا"}], "productos": [{"nombre": "Lawn Suit 3pc", "precio": 4500, "emoji": "👗", "categoria": "Fashion", "desc": "Premium cotton lawn, unstitched."}, {"nombre": "Men Shalwar Kameez", "precio": 3800, "emoji": "👔", "categoria": "Fashion", "desc": "Wash & wear fabric."}, {"nombre": "Dupatta Embroidered", "precio": 1200, "emoji": "🧣", "categoria": "Fashion", "desc": "Chiffon with handwork."}]}, "islamabad_home": {"nombre": "Islamabad Home", "whatsapp": "923211112222", "emoji": "🏠", "resenas": [{"estrellas": 4, "comentario": "Good quality"}], "productos": [{"nombre": "Bedsheet Set", "precio": 2800, "emoji": "🛏️", "categoria": "Home", "desc": "King size, cotton, 3 piece set."}, {"nombre": "Wall Clock", "precio": 1500, "emoji": "🕰️", "categoria": "Home", "desc": "Wooden, modern design."}, {"nombre": "LED Fairy Lights", "precio": 650, "emoji": "💡", "categoria": "Home", "desc": "10m, warm white, USB powered."}]}, "peshawar_food": {"nombre": "Peshawar Food", "whatsapp": "923331234567", "emoji": "🍽️", "resenas": [{"estrellas": 5, "comentario": "Authentic taste!"}, {"estrellas": 5, "comentario": "لاجواب"}], "productos": [{"nombre": "Chapli Kebab Pack", "precio": 800, "emoji": "🥩", "categoria": "Food", "desc": "6 pieces, frozen, ready to cook."}, {"nombre": "Green Tea Peshawari", "precio": 450, "emoji": "🍵", "categoria": "Food", "desc": "Kehwa style, 50 bags."}, {"nombre": "Dry Fruits Mix", "precio": 1800, "emoji": "🥜", "categoria": "Food", "desc": "500g premium Afghan mix."}]}}};
-var L={en:{cart:"🛒 Cart",add:"Add to cart",checkout:"Checkout",total:"Total",back:"← Back",pay:"Choose payment",reviews:"Reviews",all:"All products"},
-es:{cart:"🛒 Carrito",add:"Agregar",checkout:"Comprar",total:"Total",back:"← Volver",pay:"Elegí cómo pagar",reviews:"Reseñas",all:"Todos los productos"},
-ur:{cart:"🛒 ٹوکری",add:"شامل کریں",checkout:"خریدیں",total:"کل",back:"← واپس",pay:"ادائیگی منتخب کریں",reviews:"جائزے",all:"تمام مصنوعات"}};
+var SUPA_URL="https://sewdrblymwyojizugafj.supabase.co",SUPA_KEY="";
+var L={en:{cart:"🛒 Cart",add:"Add to cart",checkout:"Checkout",total:"Total",back:"← Back",paym:"Payment method",reviews:"Reviews",all:"All products",search:"Search products…",name:"Full name",phone:"WhatsApp number",addr:"Address",city:"City",place:"Place order",track:"Track order",tid:"Order ID (e.g. NS-ABC123)",empty:"Your cart is empty",stores:"Official stores",offers:"🔥 Today's offers",sell:"🏪 Open YOUR store on NexusShop",sellSub:"Sell to your city, your country, the world. Payments active from day one.",sName:"Store name",sOwner:"Owner name",sWa:"WhatsApp (+92…)",sCountry:"Country",sPlan:"Plan",sSubmit:"Create my store",sOk:"✅ Request received! Our team will contact you on WhatsApp within 24h with your store ready.",req:"Request ID"},
+es:{cart:"🛒 Carrito",add:"Agregar",checkout:"Comprar",total:"Total",back:"← Volver",paym:"Método de pago",reviews:"Reseñas",all:"Todos los productos",search:"Buscar productos…",name:"Nombre completo",phone:"Número de WhatsApp",addr:"Dirección",city:"Ciudad",place:"Confirmar pedido",track:"Seguir pedido",tid:"ID del pedido (ej. NS-ABC123)",empty:"Tu carrito está vacío",stores:"Tiendas oficiales",offers:"🔥 Ofertas de hoy",sell:"🏪 Abrí TU tienda en NexusShop",sellSub:"Vendé a tu ciudad, tu país, el mundo. Pagos activos desde el día uno.",sName:"Nombre de la tienda",sOwner:"Nombre del dueño",sWa:"WhatsApp (+92…)",sCountry:"País",sPlan:"Plan",sSubmit:"Crear mi tienda",sOk:"✅ ¡Solicitud recibida! Te contactamos por WhatsApp en 24h con tu tienda lista.",req:"ID de solicitud"},
+ur:{cart:"🛒 ٹوکری",add:"شامل کریں",checkout:"چیک آؤٹ",total:"کل",back:"← واپس",paym:"ادائیگی کا طریقہ",reviews:"جائزے",all:"تمام مصنوعات",search:"تلاش…",name:"پورا نام",phone:"واٹس ایپ نمبر",addr:"پتہ",city:"شہر",place:"آرڈر کریں",track:"آرڈر ٹریک",tid:"آرڈر آئی ڈی",empty:"ٹوکری خالی ہے",stores:"سرکاری دکانیں",offers:"🔥 آج کی آفرز",sell:"🏪 اپنی دکان کھولیں",sellSub:"اپنے شہر، ملک اور دنیا کو بیچیں۔ دن اول سے ادائیگی فعال۔",sName:"دکان کا نام",sOwner:"مالک کا نام",sWa:"واٹس ایپ",sCountry:"ملک",sPlan:"پلان",sSubmit:"دکان بنائیں",sOk:"✅ درخواست موصول! 24 گھنٹے میں واٹس ایپ پر رابطہ کریں گے۔",req:"درخواست آئی ڈی"}};
 var lang=localStorage.getItem("nx_lang")||"en";
 function t(k){return (L[lang]&&L[lang][k])||L.en[k];}
 function setLang(l){lang=l;localStorage.setItem("nx_lang",l);render();}
 function go(r){location.hash="#/"+r;}
+function enterShop(){sessionStorage.setItem("nx_in","1");document.getElementById("splash").className="hide";}
+if(sessionStorage.getItem("nx_in"))document.getElementById("splash").className="hide";
 var mref=location.search.match(/[?&]ref=([A-Za-z0-9_]+)/);if(mref)localStorage.setItem("nx_ref",mref[1]);
+var Q="";
+var PH=[["watch","photo-1524592094714-0f0654e20319"],["earbud","photo-1590658268037-6bf12165a8f"],["headphone","photo-1590658268037-6bf12165a8df"],["power bank","photo-1609091839311-d5365f9ff1c5"],["lawn","photo-1595777457583-95e059d581b8"],["dress","photo-1595777457583-95e059d581b8"],["shalwar","photo-1596755094514-f87e34085b2c"],["kameez","photo-1596755094514-f87e34085b2c"],["dupatta","photo-1601924994987-69e26d50dc26"],["scarf","photo-1601924994987-69e26d50dc26"],["bedsheet","photo-1522708323590-d24dbb6b0267"],["bed","photo-1522708323590-d24dbb6b0267"],["clock","photo-1563861826100-9cb868fdbe1c"],["led","photo-1550989460-0adf9ea622e2"],["light","photo-1550989460-0adf9ea622e2"],["chai","photo-1541167760496-1628856ab772"],["karak","photo-1541167760496-1628856ab772"],["tea","photo-1541167760496-1628856ab772"],["croissant","photo-1555507036-ab1f4038808a"],["fruit","photo-1555507036-ab1f4038808a"]];
+function photo(p){if(p.img)return p.img;var n=(p.nombre||"").toLowerCase();for(var i=0;i<PH.length;i++){if(n.indexOf(PH[i][0])>=0)return "https://images.unsplash.com/"+PH[i][1]+"?w=400&q=60";}return null;}
 function gc(){try{return JSON.parse(localStorage.getItem("nx_cart")||"{}")}catch(e){return{}}}
 function sc(c){localStorage.setItem("nx_cart",JSON.stringify(c));bar();}
-function allp(){var out=[];for(var s in DATA.tiendas){var ti=DATA.tiendas[s];(ti.productos||[]).forEach(function(p,i){out.push({s:s,ti:ti,p:p,i:i});});}return out;}
+function allp(){var o=[];for(var s in DATA.tiendas){var ti=DATA.tiendas[s];(ti.productos||[]).forEach(function(p,i){o.push({s:s,ti:ti,p:p,i:i});});}return o;}
 function bar(){var c=gc(),n=0,tot=0;for(var k in c){n+=c[k].q;tot+=c[k].q*c[k].p;}document.getElementById("bartxt").textContent=t("cart")+" ("+n+")";document.getElementById("bartot").textContent=tot?"Rs. "+tot:"";}
-function img(p){return p.img?"<img src='"+p.img+"'>":"<div class='em'>"+(p.emoji||"🛍️")+"</div>";}
+function img(p){var u=photo(p);return u?"<img src='"+u+"' loading='lazy'>":"<div class='em'>"+(p.emoji||"🛍️")+"</div>";}
 function stars(r){var n=(r||[]).length;if(!n)return"";var s=0;r.forEach(function(x){s+=(x.estrellas||5);});return "<div class='stars'>"+"★".repeat(Math.round(s/n))+" "+(s/n).toFixed(1)+"</div>";}
-function home(){var h="<div class='stores'>";for(var s in DATA.tiendas){var ti=DATA.tiendas[s];h+="<div class='store' onclick=\"go('store/"+s+"')\"><div style='font-size:30px'>"+(ti.emoji||"🏪")+"</div><b>"+ti.nombre+"</b>"+stars(ti.resenas)+"</div>";}
-h+="</div><h3 style='padding:0 16px'>"+t("all")+"</h3><div class='grid'>";
-allp().forEach(function(x,idx){h+="<div class='card' onclick=\"go('p/"+idx+"')\">"+img(x.p)+"<h3>"+x.p.nombre+"</h3><div class='p'>Rs. "+x.p.precio+"</div></div>";});
+function home(){var h="<div class='hero'><h2>🛍️ NexusShop 🇵🇰</h2><p>"+t("stores")+" · "+t("all")+"</p><input placeholder='"+t("search")+"' value='"+Q+"' oninput='Q=this.value;render()'></div><div class='sec'>"+t("stores")+"</div><div class='stores'>";
+for(var s in DATA.tiendas){var ti=DATA.tiendas[s];h+="<div class='store' onclick=\"go('store/"+s+"')\"><div class='em'>"+(ti.emoji||"🏪")+"</div><b>"+ti.nombre+"</b>"+stars(ti.resenas)+"</div>";}
+h+="</div><div class='sec'>"+t("offers")+"</div><div class='grid'>";
+allp().slice(0,4).forEach(function(x,idx){h+="<div class='card' onclick=\"go('p/"+idx+"')\">"+img(x.p)+"<h3>"+x.p.nombre+"</h3><div class='p'>Rs. "+x.p.precio+"</div></div>";});
+h+="</div><div class='cta' onclick=\"go('sell')\">"+t("sell")+"<br><span class='muted' style='color:#01411C'>"+t("sellSub")+"</span></div><div class='sec'>"+t("all")+"</div><div class='grid'>";
+allp().forEach(function(x,idx){if(Q&&x.p.nombre.toLowerCase().indexOf(Q.toLowerCase())<0)return;h+="<div class='card' onclick=\"go('p/"+idx+"')\">"+img(x.p)+"<h3>"+x.p.nombre+"</h3><div class='p'>Rs. "+x.p.precio+"</div></div>";});
 return h+"</div>";}
-function store(s){var ti=DATA.tiendas[s];if(!ti)return home();var h="<div style='padding:16px'><a href='#/'>"+t("back")+"</a><h2>"+(ti.emoji||"🏪")+" "+ti.nombre+"</h2>"+stars(ti.resenas)+"</div><div class='grid'>";
+function store(s){var ti=DATA.tiendas[s];if(!ti)return home();var h="<div class='box'><a class='back' href='#/'>"+t("back")+"</a><h2>"+(ti.emoji||"🏪")+" "+ti.nombre+"</h2>"+stars(ti.resenas)+"</div><div class='grid'>";
 allp().forEach(function(x,idx){if(x.s===s)h+="<div class='card' onclick=\"go('p/"+idx+"')\">"+img(x.p)+"<h3>"+x.p.nombre+"</h3><div class='p'>Rs. "+x.p.precio+"</div></div>";});
 return h+"</div>";}
 function prod(idx){var x=allp()[idx];if(!x)return home();var p=x.p;
-return "<div style='padding:16px'><a href='#/'>"+t("back")+"</a><div style='background:#fff;border-radius:12px;padding:20px;text-align:center'>"+img(p)+"<h2>"+p.nombre+"</h2><div class='p' style='font-size:20px'>Rs. "+p.precio+"</div>"+stars(x.ti.resenas)+"<button onclick=\"add("+idx+")\">"+t("add")+"</button></div><h3 style='margin-top:14px'>"+t("reviews")+"</h3>"+(x.ti.resenas||[]).map(function(r){return "<div style='background:#fff;padding:10px;border-radius:8px;margin:6px 0' class='stars'>"+"★".repeat(r.estrellas||5)+" <span style='color:#333'>"+(r.comentario||"")+"</span></div>";}).join("")+"</div>";}
+return "<div class='box' style='text-align:center'>"+img(p)+"<h2>"+p.nombre+"</h2><div style='font-size:22px;color:var(--pk);font-weight:800'>Rs. "+p.precio+"</div>"+stars(x.ti.resenas)+"<p class='muted'>"+x.ti.nombre+"</p><button onclick=\"add("+idx+")\">"+t("add")+"</button><a href='https://wa.me/"+(x.ti.whatsapp||"")+"'><button class='wa'>📲 WhatsApp</button></a></div><div class='box'><h3>"+t("reviews")+"</h3>"+(x.ti.resenas||[]).map(function(r){return "<div class='stars' style='padding:6px 0'>"+"★".repeat(r.estrellas||5)+" <span style='color:#333'>"+(r.comentario||"")+"</span></div>";}).join("")+"</div>";}
 function add(idx){var x=allp()[idx],c=gc(),k=x.s+x.i;c[k]=c[k]||{n:x.p.nombre,p:x.p.precio,q:0,w:x.ti.whatsapp};c[k].q++;sc(c);alert("✅ "+x.p.nombre);}
-function cart(){var c=gc(),h="<div style='padding:16px'><h2>"+t("cart")+"</h2>",tot=0,empty=true;
-for(var k in c){empty=false;var it=c[k];tot+=it.q*it.p;h+="<div style='background:#fff;padding:12px;border-radius:8px;margin:8px 0;display:flex;justify-content:space-between'><span>"+it.n+" x"+it.q+"</span><span>Rs. "+(it.q*it.p)+" <a href='#' onclick=\"rm('"+k+"')\">✖</a></span></div>";}
-if(empty)return h+"<p>Empty</p></div>";
-return h+"<h3>"+t("total")+": Rs. "+tot+"</h3><button onclick=\"checkout()\">"+t("checkout")+"</button></div>";}
+function cart(){var c=gc(),h="<div class='box'><a class='back' href='#/'>"+t("back")+"</a><h2>"+t("cart")+"</h2>",tot=0,empty=true;
+for(var k in c){empty=false;var it=c[k];tot+=it.q*it.p;h+="<div class='row'><span>"+it.n+" ×"+it.q+"</span><span>Rs. "+(it.q*it.p)+" <a href='#' onclick=\"rm('"+k+"')\">✖</a></span></div>";}
+if(empty)return h+"<p class='muted'>"+t("empty")+"</p></div>";
+return h+"<div class='row'><b>"+t("total")+"</b><b>Rs. "+tot+"</b></div><button onclick=\"go('checkout')\">"+t("checkout")+" →</button></div>";}
 function rm(k){var c=gc();delete c[k];sc(c);render();}
-function checkout(){var c=gc(),items=[],tot=0,wa="923000000000";for(var k in c){items.push({k:k,n:c[k].n,p:c[k].p,q:c[k].q});tot+=c[k].q*c[k].p;wa=c[k].w||wa;}
-var oid="NS-"+Math.random().toString(16).slice(2,9).toUpperCase();
-var order={id:oid,items:items,total:tot,w:wa,status:"pending_payment",ref:localStorage.getItem("nx_ref")||"",ts:new Date().toISOString().slice(0,10)};
+var PM="cod";
+function checkout(){var c=gc(),tot=0;for(var k in c)tot+=c[k].q*c[k].p;if(!tot)return cart();
+return "<div class='box'><a class='back' href='#/cart'>"+t("back")+"</a><h2>"+t("checkout")+"</h2>"+
+"<input id='c_name' placeholder='"+t("name")+"'><input id='c_phone' placeholder='"+t("phone")+"'><input id='c_addr' placeholder='"+t("addr")+"'><input id='c_city' placeholder='"+t("city")+"'>"+
+"<h3 style='margin-top:10px'>"+t("paym")+"</h3><div class='pay'>"+
+"<div class='m sel' id='pm_cod' onclick=\"selPM('cod')\">💵 Cash on Delivery</div>"+
+"<div class='m' id='pm_jazz' onclick=\"selPM('jazz')\">📱 JazzCash / Easypaisa</div>"+
+"<div class='m' id='pm_card' onclick=\"selPM('card')\">💳 Card / PayPal</div>"+
+"<div class='m' id='pm_bank' onclick=\"selPM('bank')\">🏦 Bank Transfer</div></div>"+
+"<button onclick='placeOrder()'>"+t("place")+" · Rs. "+tot+"</button></div>";}
+function selPM(m){PM=m;["cod","jazz","card","bank"].forEach(function(x){document.getElementById("pm_"+x).className="m"+(x===m?" sel":"");});}
+function placeOrder(){var nm=document.getElementById("c_name").value,ph=document.getElementById("c_phone").value;
+if(!nm||!ph){alert(t("name")+" + "+t("phone"));return;}
+var c=gc(),items=[],tot=0,wa="923000000000";for(var k in c){items.push({n:c[k].n,p:c[k].p,q:c[k].q});tot+=c[k].q*c[k].p;wa=c[k].w||wa;}
+var oid="NS-"+Math.random().toString(16).slice(2,8).toUpperCase();
+var order={id:oid,items:items,total:tot,w:wa,method:PM,customer:{name:nm,phone:ph,addr:document.getElementById("c_addr").value,city:document.getElementById("c_city").value},ref:localStorage.getItem("nx_ref")||"",status:"pending_payment",ts:new Date().toISOString().slice(0,10)};
 localStorage.setItem("nx_order_"+oid,JSON.stringify(order));
+if(SUPA_KEY){fetch(SUPA_URL+"/rest/v1/orders",{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify([order])}).catch(function(){});}
 localStorage.setItem("nx_cart","{}");bar();go("pay/"+oid);}
-function pay(oid){var o=JSON.parse(localStorage.getItem("nx_order_"+oid)||"null");if(!o)return "<p>Order not found</p>";
-var itemsTxt=o.items.map(function(i){return i.q+"x "+i.n;}).join(", ");
-var walink="https://wa.me/"+(o.w||"923000000000")+"?text="+encodeURIComponent("Order "+oid+": "+itemsTxt+" - Total Rs. "+o.total);
-return "<div class='pay'><h2>Order "+oid+"</h2><h3>"+t("total")+": Rs. "+o.total+"</h3><p>"+t("pay")+":</p>"+
-"<div class='m'>💳 Card / PayPal</div><div class='m'>📱 JazzCash / Easypaisa</div><div class='m'>🏦 Bank transfer</div><div class='m'>💵 Cash on delivery</div>"+
-"<a href='"+walink+"'><button style='background:#25d366'>📲 Confirm by WhatsApp</button></a></div>";}
+function pay(oid){var o=JSON.parse(localStorage.getItem("nx_order_"+oid)||"null");if(!o)return "<div class='box'>Order not found</div>";
+var M={cod:"💵 Cash on Delivery — pay the rider when your order arrives.",jazz:"📱 JazzCash / Easypaisa — send Rs. "+o.total+" to the merchant number, reference: "+oid,card:"💳 Card / PayPal — a secure payment link will be sent to your WhatsApp.",bank:"🏦 Bank Transfer — account details sent to your WhatsApp, reference: "+oid};
+var txt="Order "+oid+" ("+o.customer.name+", "+o.customer.city+"): "+o.items.map(function(i){return i.q+"x "+i.n;}).join(", ")+" — Rs. "+o.total+" — Method: "+o.method;
+return "<div class='box' style='text-align:center'><h2>✅ Order "+oid+"</h2><p class='muted'>"+t("total")+": <b>Rs. "+o.total+"</b></p><p style='margin:10px 0'>"+M[o.method]+"</p><a href='https://wa.me/"+(o.w||"923000000000")+"?text="+encodeURIComponent(txt)+"'><button class='wa'>📲 Confirm by WhatsApp</button></a><button onclick=\"go('track')\">"+t("track")+"</button></div>";}
+function track(){return "<div class='box'><h2>📦 "+t("track")+"</h2><input id='t_id' placeholder='"+t("tid")+"'><button onclick='doTrack()'>"+t("track")+"</button><div id='t_out'></div></div>";}
+function doTrack(){var o=JSON.parse(localStorage.getItem("nx_order_"+document.getElementById("t_id").value.trim().toUpperCase())||"null");
+document.getElementById("t_out").innerHTML=o?"<div class='row'><span>"+o.id+"</span><b>"+o.status+"</b></div><div class='row'><span>"+t("total")+"</span><b>Rs. "+o.total+"</b></div><div class='row'><span>📅</span><span>"+o.ts+"</span></div>":"<p class='muted'>Not found on this device</p>";}
+function sell(){return "<div class='box'><h2>"+t("sell")+"</h2><p class='muted'>"+t("sellSub")+"</p>"+
+"<input id='s_name' placeholder='"+t("sName")+"'><input id='s_owner' placeholder='"+t("sOwner")+"'><input id='s_wa' placeholder='"+t("sWa")+"'>"+
+"<select id='s_country'><option>Pakistan 🇵</option><option>Argentina 🇦🇷</option><option>Nigeria 🇳🇬</option><option>Philippines 🇵🇭</option><option>Turkey 🇹🇷</option><option>Other 🌍</option></select>"+
+"<select id='s_plan'><option value='growth'>Growth — $49/mes</option><option value='pro'>Pro — $99/mes</option></select>"+
+"<button onclick='sellStore()'>"+t("sSubmit")+" 🚀</button></div>";}
+function sellStore(){var nm=document.getElementById("s_name").value,ow=document.getElementById("s_owner").value,wa=document.getElementById("s_wa").value;
+if(!nm||!ow||!wa){alert(t("sName")+" + "+t("sOwner")+" + "+t("sWa"));return;}
+var id="st-"+Math.random().toString(16).slice(2,8);
+var st={id:id,name:nm,owner:ow,whatsapp:wa,country:document.getElementById("s_country").value,plan:document.getElementById("s_plan").value,active:false};
+localStorage.setItem("nx_storereq_"+id,JSON.stringify(st));
+if(SUPA_KEY){fetch(SUPA_URL+"/rest/v1/stores",{method:"POST",headers:{apikey:SUPA_KEY,Authorization:"Bearer "+SUPA_KEY,"Content-Type":"application/json"},body:JSON.stringify([st])}).catch(function(){});}
+document.getElementById("app").innerHTML="<div class='box' style='text-align:center'><h2>"+t("sOk")+"</h2><p class='muted'>"+t("req")+": "+id+"</p><button onclick=\"go('')\">🛍️ NexusShop</button></div>";}
+function terms(){return "<div class='box'><h2>Terms & Conditions</h2><p class='muted'>Last updated: Sep 2026</p><p>1. NexusShop is a marketplace platform connecting independent merchants with customers. Each merchant is responsible for their products, prices and fulfillment.</p><p>2. Orders are confirmed via WhatsApp with the merchant. Payment methods: Cash on Delivery, JazzCash/Easypaisa, card/PayPal and bank transfer.</p><p>3. Refunds and returns are handled by each merchant according to their published policy.</p><p>4. Partner links (?ref=) tag orders for commission purposes only and do not affect prices.</p><p>5. By using NexusShop you accept these terms.</p></div>";}
+function privacy(){return "<div class='box'><h2>Privacy Policy</h2><p class='muted'>Last updated: Sep 2026</p><p>1. Your cart and orders are stored locally on your device until confirmed with the merchant via WhatsApp.</p><p>2. We only collect checkout data (name, WhatsApp, address, city) to process your order.</p><p>3. We do not sell personal data to third parties.</p><p>4. Request deletion of your data anytime via support.</p></div>";}
 function render(){var h=location.hash||"#/";var app=document.getElementById("app");
 if(h.indexOf("#/store/")===0)app.innerHTML=store(h.slice(8));
-else if(h.indexOf("#/p/")===0)app.innerHTML=prod(parseInt(h.slice(4)));
+else if(h.indexOf("#/p/")===0)app.innerHTML=prod(parseInt(h.slice(4)))
 else if(h==="#/cart")app.innerHTML=cart();
+else if(h==="#/checkout")app.innerHTML=checkout();
 else if(h.indexOf("#/pay/")===0)app.innerHTML=pay(h.slice(6));
+else if(h==="#/track")app.innerHTML=track();
+else if(h==="#/sell")app.innerHTML=sell();
+else if(h==="#/terms")app.innerHTML=terms();
+else if(h==="#/privacy")app.innerHTML=privacy();
 else app.innerHTML=home();
-bar();}
+bar();window.scrollTo(0,0);}
 window.onhashchange=render;render();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("/sw.js").catch(function(){});
 </script></body></html>
