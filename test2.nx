@@ -1,0 +1,12 @@
+# flujo de control + digitos urdu
+x = ۵
+si x > ۳:
+    print("mayor")
+sino:
+    print("menor")
+i = 0
+mientras i < 3:
+    print(i)
+    i = i + 1
+para n in [1, 2, 3]:
+    print(n)
