@@ -25,7 +25,7 @@ KEYWORDS = {
 TOKEN_SPEC = [
     ('COMMENT',  r'#[^\n]*'),
     ('STRING',   r'"[^"]*"|\'[^\']*\''),
-    ('NUMBER',   r'\d+(?:\.\d+)?'),
+  ('NUMBER',    r'[0-9\u06F0-\u06F9]+(\.[0-9\u06F0-\u06F9]+)?'),
     ('IDENT',    r'[A-Za-z_\u0600-\u06FF][A-Za-z0-9_\u0600-\u06FF]*'),
     ('OP',       r'==|!=|<=|>=|&&|\|\||<|>|\+|-|\*|/|='),
     ('PUNCT',    r'[()\[\]{},:]'),
@@ -719,6 +719,7 @@ def tokenize_line(line):
     toks = []
     for m in _tok_re.finditer(line):
         kind = m.lastgroup; val = m.group()
+        if kind == 'NUMBER': val = val.translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹', '0123456789'))
         if kind in ('SKIP', 'COMMENT', 'NEWLINE'): continue
         if kind == 'IDENT' and val in KEYWORDS: toks.append(('KW', KEYWORDS[val]))
         elif kind == 'MISMATCH': raise SyntaxError('caracter inesperado: %r' % val)

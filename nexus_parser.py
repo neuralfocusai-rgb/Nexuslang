@@ -9,6 +9,7 @@ def tokenize_line(line):
     toks = []
     for m in _tok_re.finditer(line):
         kind = m.lastgroup; val = m.group()
+        if kind == 'NUMBER': val = val.translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹', '0123456789'))
         if kind in ('SKIP', 'COMMENT', 'NEWLINE'): continue
         if kind == 'IDENT' and val in KEYWORDS: toks.append(('KW', KEYWORDS[val]))
         elif kind == 'MISMATCH': raise SyntaxError('caracter inesperado: %r' % val)
