@@ -916,6 +916,7 @@ def run(code, env):
     return None
 
 import sys
+
 def _nexus_main():
     if len(sys.argv) < 2:
         return
@@ -925,4 +926,5 @@ def _nexus_main():
     for s in ast[1]:
         gen_stmt(s, code)
     run(code, {})
+
 _nexus_main()
