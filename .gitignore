@@ -1,0 +1,27 @@
+# secretos y config local
+.env
+.env.*
+*.pem
+*.key
+*.p12
+id_rsa*
+id_ed25519*
+# bases, backups y logs
+*.db
+*.sqlite
+*.sqlite3
+*.bak
+*.dump
+*.log
+# caches y artefactos
+.cache/
+.tmp/
+__pycache__/
+*.pyc
+node_modules/
+# entorno
+.bash_history
+.gitconfig
+.vscode/
+.idea/
+.DS_Store
