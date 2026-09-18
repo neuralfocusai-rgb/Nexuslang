@@ -1,4 +1,4 @@
-# NexusLang v9.4
+# NexusLang v5.4 (official — see VERSION)
 
 **The first trilingual programming language (Spanish / English / Urdu) with native Urdu script (RTL), its own compiler pipeline and its own virtual machine.**
 
