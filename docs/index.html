@@ -25,8 +25,8 @@ pre{background:#111;border-radius:12px;padding:14px;min-height:200px;white-space
 <header><h1>Nexus<span style="color:#ffd166">Lang</span> 🇵🇰</h1>
 <div class="tag">اردو · Español · English — اپنی زبان میں کوڈ لکھیں</div></header>
 <main>
-<textarea id="code">متغیر نام = "حماد";
-لکھو("سلام " + نام);</textarea>
+<textarea id="code">چھاپو("سلام دنیا")
+</textarea>
 <button id="runBtn" disabled>▶ چلاؤ / Run</button>
 <div id="status">Loading Pyodide...</div>
 <pre id="out"></pre>
@@ -800,10 +800,29 @@ var KW=['کلاس','طریقہ','متغیر','نیا','لکھو','خود','جب 
 var pal=document.createElement('div');pal.className='nx-pal';
 KW.forEach(function(k){var b=document.createElement('button');b.type='button';b.textContent=k;b.onclick=function(){ins(k);};pal.appendChild(b);});
 bar.appendChild(pal);
-var EX=[['سلام دنیا','لکھو("سلام دنیا")'],['Clase / کلاس','کلاس طالب_علم {\n    طریقہ init(نام) {\n        خود.نام = نام;\n    }\n    طریقہ دکھاؤ() {\n        لکھو("سلام " + خود.نام);\n    }\n}\nمتغیر s = نیا طالب_علم("Ali");\ns.دکھاؤ();'],['Matemática','متغیر x = 2 + 3;\nلکھو(x)']];
+var DEFAULT_EX="چھاپو(\"سلام دنیا\")\n";
+var EX=[["سلام دنیا", "چھاپو(\"سلام دنیا\")
+"], ["پہلا پروگرام", "ریغتم سلام = \"السلام علیکہ\"
+چھاپو(سلام)
+"], ["شرط", "ریغتم نمرہ = 5
+اگر (نمرہ > 3) {
+چھاپو(\"پاس\")
+} ورنہ {
+چھاپو(\"فیل\")
+}
+"], ["لوپ", "ریغتم ع = 1
+جبکہ (ع < 4) {
+چھاپو(ع)
+ع = ع + 1
+}
+"], ["فنکشن", "فنکشن سلام(نام) {
+واپس \"سلام \" + نام
+}
+چھاپو(سلام(\"پاکستان\"))
+"]];
 var sel=document.createElement('select');sel.innerHTML='<option value="">📚 Ejemplos / Examples</option>';
 EX.forEach(function(e,i){var o=document.createElement('option');o.value=i;o.textContent=e[0];sel.appendChild(o);});
-sel.onchange=function(){if(sel.value!==''){ta.value=EX[+sel.value][1];render();}sel.value='';};
+sel.onchange=function(){if(sel.value!==''){ta.value=EX[+sel.value][1];render();}sel.value='';if(!ta.value){ta.value=DEFAULT_EX;render();}};
 bar.appendChild(sel);
 var sh=document.createElement('button');sh.type='button';sh.className='act';sh.textContent='🔗 Compartir';sh.onclick=share;bar.appendChild(sh);
 var sv=document.createElement('span');sv.className='act';sv.id='nx-sv';bar.appendChild(sv);
