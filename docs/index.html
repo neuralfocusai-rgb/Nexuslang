@@ -25,7 +25,7 @@ pre{background:#111;border-radius:12px;padding:14px;min-height:200px;white-space
 <header><h1>Nexus<span style="color:#ffd166">Lang</span> 🇵🇰</h1>
 <div class="tag">اردو · Español · English — اپنی زبان میں کوڈ لکھیں</div></header>
 <main>
-<textarea id="code">چھاپو("سلام دنیا")
+<textarea id="code">لکھو("hello world")
 </textarea>
 <button id="runBtn" disabled>▶ چلاؤ / Run</button>
 <div id="status">Loading Pyodide...</div>
@@ -800,7 +800,8 @@ var KW=['کلاس','طریقہ','متغیر','نیا','لکھو','خود','جب 
 var pal=document.createElement('div');pal.className='nx-pal';
 KW.forEach(function(k){var b=document.createElement('button');b.type='button';b.textContent=k;b.onclick=function(){ins(k);};pal.appendChild(b);});
 bar.appendChild(pal);
-var DEFAULT_EX="چھاپو(\"سلام دنیا\")\n";
+var DEFAULT_EX_OLD="چھاپو(\"سلام دنیا\")\n";
+var DEFAULT_EX="لکھو(\"hello world\")\n";
 var EX=[["سلام دنیا", "چھاپو(\"سلام دنیا\")
 "], ["پہلا پروگرام", "ریغتم سلام = \"السلام علیکہ\"
 چھاپو(سلام)
