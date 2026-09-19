@@ -800,9 +800,8 @@ var KW=['کلاس','طریقہ','متغیر','نیا','لکھو','خود','جب 
 var pal=document.createElement('div');pal.className='nx-pal';
 KW.forEach(function(k){var b=document.createElement('button');b.type='button';b.textContent=k;b.onclick=function(){ins(k);};pal.appendChild(b);});
 bar.appendChild(pal);
-var DEFAULT_EX_OLD="چھاپو(\"سلام دنیا\")\n";
 var DEFAULT_EX="لکھو(\"hello world\")\n";
-var EX=[["سلام دنیا", "چھاپو(\"سلام دنیا\")
+var EX=[["hello", "لکھو(\"hello world\")\n"], ["var", "متغیر name = \"NexusLang\"\nلکھو(name)\n"], ["if", "متغیر n = 5\nاگر (n > 3) {\nلکھو(\"pass\")\n} ورنہ {\nلکھو(\"fail\")\n}\n"], ["while", "متغیر i = 1\nجبکہ (i < 4) {\nلکھو(i)\n i = i + 1\n}\n"]];
 "], ["پہلا پروگرام", "ریغتم سلام = \"السلام علیکہ\"
 چھاپو(سلام)
 "], ["شرط", "ریغتم نمرہ = 5
