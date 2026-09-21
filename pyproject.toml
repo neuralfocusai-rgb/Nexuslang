@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nexuslang"
+version = "5.4.0"
+description = "The first trilingual programming language (English / Spanish / Urdu) with native Urdu RTL syntax"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.9"
+dependencies = ["cryptography>=42"]
+authors = [{name = "Lucas Guzman"}]
+keywords = ["programming-language", "urdu", "spanish", "trilingual", "education", "rtl"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Software Development :: Interpreters",
+]
+
+[project.scripts]
+nexuslang = "nexuslang:main"
+
+[tool.setuptools]
+py-modules = ['nexusbase', 'nexusbase_adapter', 'nexuslang']
