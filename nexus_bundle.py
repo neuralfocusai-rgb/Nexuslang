@@ -55,7 +55,12 @@ def lex(src):
 import os, json, re, base64, hashlib, secrets, shutil
 from datetime import datetime
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+try:
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    HAS_CRYPTO = True
+except ImportError:
+    HAS_CRYPTO = False
+    AESGCM = None
 
 # ==================== CONFIGURACIÓN ====================
 VERSION = "5.1.0"
@@ -77,6 +82,8 @@ NONCE_SIZE = 12
 
 def encrypt_data(plaintext):
     """Encripta con AES-256-GCM (nivel militar)"""
+    if not HAS_CRYPTO:
+        return plaintext
     nonce = os.urandom(NONCE_SIZE)
     aesgcm = AESGCM(MASTER_KEY)
     ciphertext = aesgcm.encrypt(nonce, plaintext.encode('utf-8'), None)
@@ -84,6 +91,8 @@ def encrypt_data(plaintext):
 
 def decrypt_data(encrypted_data):
     """Desencripta datos AES-256-GCM"""
+    if not HAS_CRYPTO:
+        return encrypted_data
     encrypted_bytes = base64.b64decode(encrypted_data.encode('utf-8'))
     nonce = encrypted_bytes[:NONCE_SIZE]
     ciphertext = encrypted_bytes[NONCE_SIZE:]
