@@ -1,178 +1,306 @@
 <!DOCTYPE html>
-<html lang="ur">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NexusLang Playground</title>
+<title>NexusLang — Playground & Home</title>
+<meta name="description" content="NexusLang — the first trilingual programming language (English/Spanish/Urdu) with native Urdu RTL syntax. Run Urdu code in your browser, no install.">
+<meta property="og:title" content="NexusLang — Code in your mother tongue">
+<meta property="og:description" content="Run Urdu, Spanish and English code in your browser. Native RTL syntax. Open source, free forever.">
+<meta property="og:type" content="website">
 <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
 <style>
+:root{--bg:#1e1e1e;--bg2:#252526;--bg3:#333333;--bg4:#3c3c3c;--acc:#007acc;--txt:#d4d4d4;--mut:#9d9d9d;--k:#569cd6;--kc:#c586c0;--s:#ce9178;--n:#b5cea8;--c:#6a9955;--f:#dcdcaa;--err:#f48771;--ok:#4ec9b0;--gold:#ffd166}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,sans-serif;background:#0b6b3a;color:#fff;min-height:100vh}
-header{padding:16px;text-align:center}
-h1{font-size:24px}
-.tag{font-size:13px;opacity:.85}
-main{max-width:760px;margin:0 auto;padding:0 12px 40px}
-textarea{width:100%;height:280px;border:0;border-radius:12px;padding:14px;font-size:18px;direction:rtl;font-family:monospace;background:#fff;color:#111}
-button{width:100%;margin:12px 0;background:#ffd166;color:#111;border:0;border-radius:12px;padding:14px;font-size:18px;font-weight:800;cursor:pointer}
-button:hover{background:#ffc107}
-#status{font-size:13px;text-align:center;padding:6px}
-pre{background:#111;border-radius:12px;padding:14px;min-height:200px;white-space:pre-wrap;font-size:18px;color:#7CFC00;max-height:40vh;overflow-y:auto}
-.info{background:#0a5230;border-radius:12px;padding:14px;margin-top:16px;font-size:14px}
-.info a{color:#ffd166}
+html,body{height:100%}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--txt);display:flex;flex-direction:column;overflow:hidden}
+code,pre,textarea{font-family:'Cascadia Code',Consolas,'Courier New',monospace}
+/* TITLE BAR */
+#titlebar{height:34px;background:#323233;display:flex;align-items:center;gap:8px;padding:0 10px;font-size:12px;color:var(--mut);flex:0 0 auto}
+#titlebar .dot{width:11px;height:11px;border-radius:50%}
+#titlebar .t{flex:1;text-align:center;white-space:nowrap;overflow:hidden}
+#titlebar a,#titlebar button{background:none;border:none;color:var(--mut);cursor:pointer;font-size:13px;padding:2px 6px}
+/* TAB BAR */
+#tabbar{height:36px;background:var(--bg2);display:flex;align-items:stretch;flex:0 0 auto;overflow-x:auto}
+.tab{padding:0 16px;display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--mut);background:var(--bg2);border-right:1px solid #1b1b1b;cursor:pointer;white-space:nowrap}
+.tab.on{background:var(--bg);color:#fff;border-top:2px solid var(--acc)}
+/* MAIN ROW */
+#mainrow{flex:1;display:flex;min-height:0}
+#activity{width:46px;background:var(--bg2);display:flex;flex-direction:column;align-items:center;padding-top:6px;gap:4px;flex:0 0 auto}
+#activity button{width:40px;height:40px;background:none;border:none;color:var(--mut);font-size:19px;cursor:pointer;border-left:2px solid transparent;border-radius:0}
+#activity button.on{color:#fff;border-left-color:#fff}
+@media(max-width:720px){#activity{display:none}}
+#workarea{flex:1;display:flex;flex-direction:column;min-width:0}
+/* BREADCRUMB + TOOLBAR */
+#crumb{height:26px;background:var(--bg);display:flex;align-items:center;gap:6px;padding:0 12px;font-size:11.5px;color:var(--mut);flex:0 0 auto;overflow-x:auto;white-space:nowrap}
+#toolbar{background:var(--bg2);display:flex;gap:6px;align-items:center;padding:6px 8px;flex:0 0 auto;overflow-x:auto}
+#toolbar button,#toolbar select{background:var(--bg3);color:#c8e6c9;border:1px solid #454545;border-radius:6px;padding:5px 9px;font-size:12.5px;cursor:pointer;flex:0 0 auto}
+#toolbar select{color:var(--txt)}
+#toolbar .sp{flex:1}
+#dirBtn{border-color:var(--acc)!important;color:#9fd7ff!important}
+/* EDITOR */
+#editorArea{flex:1;position:relative;min-height:0;background:var(--bg)}
+#gut{position:absolute;left:0;top:0;bottom:0;width:44px;overflow:hidden;background:var(--bg);color:#6e7681;font:13.5px/1.55 'Cascadia Code',Consolas,monospace;padding:10px 6px;text-align:right;white-space:pre}
+#hl{position:absolute;left:44px;right:0;top:0;bottom:0;margin:0;overflow:hidden;pointer-events:none;white-space:pre-wrap;word-break:break-word;color:var(--txt);font:13.5px/1.55 'Cascadia Code',Consolas,monospace;padding:10px 12px}
+#code{position:absolute;left:44px;right:0;top:0;bottom:0;width:auto;background:transparent;color:transparent;caret-color:#aeafad;border:none;outline:none;resize:none;overflow:auto;white-space:pre-wrap;word-break:break-word;font:13.5px/1.55 'Cascadia Code',Consolas,monospace;padding:10px 12px}
+#editorArea.rtl #gut{left:auto;right:0}
+#editorArea.rtl #code{left:0;right:44px;direction:rtl}
+#editorArea.rtl #hl{left:0;right:44px;direction:rtl}
+.k{color:var(--k);font-weight:600}.kc{color:var(--kc);font-weight:600}.s{color:var(--s)}.n{color:var(--n)}.c{color:var(--c);font-style:italic}.f{color:var(--f)}
+/* README VIEW */
+#readme{flex:1;overflow:auto;padding:26px 20px 60px;background:var(--bg);display:none}
+#readme h1{font-size:26px;color:#fff;margin-bottom:6px}
+#readme h2{font-size:18px;color:#fff;margin:22px 0 8px;border-bottom:1px solid var(--bg4);padding-bottom:6px}
+#readme p{font-size:14px;line-height:1.7;color:#ccc;margin:8px 0;max-width:760px}
+#readme .badges{margin:8px 0}
+#readme .bd{display:inline-block;background:#0e3d22;color:#b6f0c6;border:1px solid #1d6b3a;border-radius:14px;padding:3px 10px;font-size:11.5px;margin:2px}
+#readme pre{background:#111;border:1px solid #2d2d2d;border-radius:8px;padding:12px;font-size:12.5px;overflow-x:auto;white-space:pre;color:#e5e7eb;margin:8px 0}
+#readme .grid{display:grid;grid-template-columns:1fr;gap:10px;margin:10px 0}
+@media(min-width:680px){#readme .grid{grid-template-columns:1fr 1fr}}
+#readme .card{background:var(--bg2);border:1px solid #2d2d2d;border-radius:8px;padding:14px}
+#readme .card h3{font-size:14px;color:var(--ok);margin-bottom:6px}
+#readme .card p{font-size:12.5px;margin:0;color:var(--mut)}
+#readme a.btn{display:inline-block;background:var(--acc);color:#fff;border-radius:6px;padding:9px 16px;font-weight:600;text-decoration:none;margin:4px 6px 4px 0;font-size:13px}
+#readme a.btn.g{background:var(--bg3);border:1px solid #454545}
+/* PANEL / CONSOLE */
+#handle{height:6px;background:var(--bg2);cursor:ns-resize;flex:0 0 auto;border-top:1px solid #1b1b1b}
+#handle:hover{background:var(--acc)}
+#panel{height:45vh;display:flex;flex-direction:column;background:var(--bg);flex:0 0 auto;min-height:90px}
+#phead{height:32px;background:var(--bg);display:flex;align-items:center;gap:2px;padding:0 8px;border-bottom:1px solid #2d2d2d;flex:0 0 auto}
+#phead .pt{padding:4px 10px;font-size:11px;letter-spacing:.6px;color:var(--mut);cursor:pointer;text-transform:uppercase}
+#phead .pt.on{color:#fff;border-bottom:1px solid var(--acc)}
+#phead .sp{flex:1}
+#phead button{background:none;border:none;color:var(--mut);cursor:pointer;font-size:13px;padding:4px 7px}
+#runBtn{background:var(--acc)!important;color:#fff!important;border-radius:5px!important;padding:5px 14px!important;font-weight:700;font-size:12px!important}
+#runBtn:disabled{opacity:.5}
+#out{flex:1;overflow:auto;padding:12px 14px;font-size:14px;line-height:1.6;white-space:pre-wrap;color:#d4d4d4;background:#181818;margin:0}
+#out .t{color:var(--mut)}
+#problems{flex:1;overflow:auto;padding:12px 14px;font-size:13px;display:none}
+/* STATUS BAR */
+#statusbar{height:24px;background:var(--acc);color:#fff;display:flex;align-items:center;gap:14px;padding:0 10px;font-size:11.5px;flex:0 0 auto;overflow-x:auto;white-space:nowrap}
+#statusbar .sp{flex:1}
 </style>
 </head>
 <body>
-<header><h1>Nexus<span style="color:#ffd166">Lang</span> 🇵🇰</h1>
-<div class="tag">اردو · Español · English — اپنی زبان میں کوڈ لکھیں</div></header>
-<main>
-<textarea id="code">متغیر نام = "حماد";
-لکھو("سلام " + نام);</textarea>
-<button id="runBtn" disabled>▶ چلاؤ / Run</button>
-<div id="status">Loading Pyodide...</div>
-<pre id="out"></pre>
-<div class="info">
-<b>💻 پی سی کے لیے (VS Code / نوٹ پیڈ):</b><br>
-1. انٹرپریٹر ڈاؤن لوڈ کریں:<br>
-<a href="nexuslang_v12.py" download>⬇ nexuslang_v12.py</a><br>
-2. Python 3 + Notepad/VS Code میں کوڈ لکھیں<br>
-3. چلائیں: <code>python nexuslang_v12.py programa.nx</code>
+
+<div id="titlebar">
+  <span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span>
+  <span class="t">NexusLang Playground — program.nx — Visual Studio Code style</span>
+  <button id="ghTop" title="GitHub">🌐</button>
 </div>
-</main>
+
+<div id="tabbar">
+  <div class="tab on" id="tabCode">📄 program.nx</div>
+  <div class="tab" id="tabReadme">📖 README.md</div>
+</div>
+
+<div id="mainrow">
+  <div id="activity">
+    <button id="actCode" class="on" title="Editor">📄</button>
+    <button id="actReadme" title="README">📖</button>
+    <button id="actRun" title="Run">▶</button>
+    <button id="actShare" title="Share">🔗</button>
+    <button id="actGh" title="GitHub">🐙</button>
+  </div>
+  <div id="workarea">
+    <div id="crumb">nexuslang › playground › <span id="crumbLang">Urdu RTL</span></div>
+    <div id="toolbar">
+      <div id="pal" style="display:flex;gap:4px;overflow-x:auto"></div>
+      <span class="sp"></span>
+      <select id="exSel"><option value="">📚 Examples</option></select>
+      <button id="dirBtn">⇄ RTL/LTR</button>
+    </div>
+    <div id="editorArea" class="rtl">
+      <div id="gut"></div>
+      <pre id="hl"></pre>
+      <textarea id="code" spellcheck="false">متغیر نام = "حماد";
+لکھو("سلام " + نام);</textarea>
+    </div>
+    <div id="readme"></div>
+  </div>
+</div>
+
+<div id="handle"></div>
+<div id="panel">
+  <div id="phead">
+    <span class="pt on" id="ptCon">Console</span>
+    <span class="pt" id="ptProb">Problems <span id="probCount"></span></span>
+    <span class="sp"></span>
+    <button id="copyOut" title="Copy output">⧉</button>
+    <button id="clearOut" title="Clear">🗑</button>
+    <button id="sizeOut" title="Resize console">⤢</button>
+    <button id="runBtn" disabled>▶ Run · Ctrl+Enter</button>
+  </div>
+  <pre id="out"><span class="t"># NexusLang Console — loading Pyodide runtime…</span></pre>
+  <div id="problems"></div>
+</div>
+
+<div id="statusbar">
+  <span>⚡ main*</span><span>NexusLang v5.4.0</span><span class="sp"></span>
+  <span id="lnCol">Ln 1, Col 1</span><span>UTF-8</span><span id="pySt">Pyodide: loading…</span>
+</div>
+
 <script>
-window.NEXUS_INTERP = null;
-let pyodide = null;
-let interpreterCode = '';
-
-async function loadInterpreter() {
-    try {
-        pyodide = await loadPyodide({
-            indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/'
-        });
-        
-        // Load interpreter with cache busting
-        interpreterCode = await (await fetch('nexus_bundle.py?v=' + Date.now())).text();
-        
-        document.getElementById('status').textContent = '✅ Ready — Click Run';
-        document.getElementById('runBtn').disabled = false;
-    } catch (err) {
-        document.getElementById('status').textContent = '⛔ Error: ' + err.message;
-    }
+/* ============ NEXUS RUNTIME (Pyodide) ============ */
+let pyodide=null, interpreterCode='';
+const out=document.getElementById('out'), runBtn=document.getElementById('runBtn'), pySt=document.getElementById('pySt');
+async function loadInterpreter(){
+  try{
+    pyodide=await loadPyodide({indexURL:'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/'});
+    interpreterCode=await (await fetch('nexus_bundle.py?v='+Date.now())).text();
+    pySt.textContent='Pyodide v0.26.2 ✓ Ready';
+    out.innerHTML='<span class="t"># NexusLang Console — ready. Press ▶ Run (Ctrl+Enter).</span>';
+    runBtn.disabled=false;
+  }catch(e){ pySt.textContent='Pyodide: error'; out.textContent='⛔ Loader error: '+e.message; addProblem(e.message); }
 }
-
-async function runCode() {
-    if (!pyodide) {
-        document.getElementById('out').textContent = 'Still loading...';
-        return;
-    }
-    
-    const userCode = document.getElementById('code').value;
-    const output = document.getElementById('out');
-    
-    output.textContent = 'Running...';
-    
-    try {
-        // Set up globals
-        pyodide.globals.set('userCode', userCode);
-        pyodide.globals.set('interpreterCode', interpreterCode);
-        
-        // Execute
-        const result = pyodide.runPython(`
-import sys
-import io
-
-# Write user code to file
-with open('/program.nx', 'w', encoding='utf-8') as f:
+function addProblem(msg){
+  const p=document.getElementById('problems');
+  p.innerHTML='<p style="color:var(--err)">⛔ 1 problem: '+String(msg).replace(/</g,'&lt;')+'</p>';
+  document.getElementById('probCount').textContent='1';
+}
+async function runCode(){
+  if(!pyodide){ out.textContent='Still loading runtime…'; return; }
+  const ta=document.getElementById('code');
+  out.textContent=''; const t0=performance.now();
+  try{
+    pyodide.globals.set('userCode',ta.value);
+    pyodide.globals.set('interpreterCode',interpreterCode);
+    const result=pyodide.runPython(`
+import sys, io
+with open('/program.nx','w',encoding='utf-8') as f:
     f.write(userCode)
-
-# Set argv
-sys.argv = ['nexuslang_v12.py', '/program.nx']
-
-# Capture stdout
-old_stdout = sys.stdout
-sys.stdout = captured = io.StringIO()
-
-error_msg = ''
+sys.argv=['nexuslang_v12.py','/program.nx']
+old=sys.stdout; sys.stdout=captured=io.StringIO()
+err=''
 try:
-    # Execute interpreter
-    exec(interpreterCode, {'__name__': '__main__'})
+    exec(interpreterCode,{'__name__':'__main__'})
 except Exception as e:
-    error_msg = '\\n⛔ Error: ' + str(e)
+    err='\\n⛔ Error: '+str(e)
 finally:
-    # Always restore stdout even if exec breaks unexpectedly
-    sys.stdout = old_stdout
-
-captured.getvalue() + error_msg
+    sys.stdout=old
+captured.getvalue()+err
 `);
-        
-        output.textContent = result || '(no output)';
-    } catch (err) {
-        output.textContent = '⛔ Runtime Error: ' + err.message;
-    }
+    const ms=Math.round(performance.now()-t0);
+    out.textContent=(result||'(no output)')+'\n\n[Done in '+ms+' ms — NexusLang v5.4.0]';
+    if(String(result).includes('⛔')) addProblem(result);
+    else { document.getElementById('problems').innerHTML='<p style="color:var(--ok)">✓ No problems detected.</p>'; document.getElementById('probCount').textContent='0'; }
+  }catch(e){ out.textContent='⛔ Runtime Error: '+e.message; addProblem(e.message); }
 }
-
-// Event listeners
-document.getElementById('runBtn').addEventListener('click', runCode);
-
-// Load on startup
-loadInterpreter();
-</script>
-
-<style>
-.nx-bar{display:flex;gap:6px;align-items:center;margin:6px 0;flex-wrap:wrap}
-.nx-pal{display:flex;gap:4px;overflow-x:auto;width:100%;padding:4px 0}
-.nx-pal button{flex:0 0 auto;background:#0e3d22;color:#b6f0c6;border:1px solid #1d6b3a;border-radius:8px;padding:6px 10px;font-size:14px}
-.nx-bar select,.nx-bar button.act,.nx-bar span.act{background:#0e3d22;color:#e8f5e9;border:1px solid #1d6b3a;border-radius:8px;padding:6px 8px;font-size:13px}
-.nx-wrap{position:relative}
-.nx-gut{position:absolute;left:0;top:0;bottom:0;width:34px;overflow:hidden;background:#0b2416;color:#5a8f6d;font:12px/1.4 monospace;padding:8px 4px;text-align:right;box-sizing:border-box;white-space:pre}
-.nx-hl{position:absolute;left:34px;right:0;top:0;bottom:0;margin:0;overflow:hidden;pointer-events:none;white-space:pre-wrap;word-break:break-word;color:#e8f5e9;font:13px/1.4 monospace;padding:8px;box-sizing:border-box}
-.nx-wrap textarea{position:relative;z-index:2;background:transparent !important;color:transparent !important;caret-color:#7cfc9e;font:13px/1.4 monospace !important;padding:8px 8px 8px 42px !important;box-sizing:border-box}
-.nx-wrap.rtl .nx-gut{left:auto;right:0}
-.nx-wrap.rtl textarea{padding:8px 42px 8px 8px !important}
-.nx-wrap.rtl .nx-hl{left:0;right:34px}
-.nx-k{color:#7cfc9e;font-weight:700}.nx-s{color:#ffd479}.nx-n{color:#79b8ff}.nx-c{color:#6a737d}
-</style>
-<script>
-(function(){
-var ta=document.querySelector('textarea');if(!ta)return;
-var wrapP=ta.parentNode;
-var bar=document.createElement('div');bar.className='nx-bar';wrapP.insertBefore(bar,ta);
-var wrap=document.createElement('div');wrap.className='nx-wrap';wrapP.insertBefore(wrap,ta);wrap.appendChild(ta);
-if((ta.getAttribute('dir')||'')==='rtl'||(getComputedStyle(ta).direction==='rtl')){wrap.classList.add('rtl');}
-var gut=document.createElement('div');gut.className='nx-gut';wrap.appendChild(gut);
-var pre=document.createElement('pre');pre.className='nx-hl';pre.dir=ta.dir||'ltr';wrap.appendChild(pre);
-var KW=['کلاس','طریقہ','متغیر','نیا','لکھو','خود','جب تک','اگر','ورنہ','واپس'];
-var pal=document.createElement('div');pal.className='nx-pal';
-KW.forEach(function(k){var b=document.createElement('button');b.type='button';b.textContent=k;b.onclick=function(){ins(k);};pal.appendChild(b);});
-bar.appendChild(pal);
-var EX=[['سلام دنیا','لکھو("سلام دنیا")'],['Clase / کلاس','کلاس طالب_علم {\n    طریقہ init(نام) {\n        خود.نام = نام;\n    }\n    طریقہ دکھاؤ() {\n        لکھو("سلام " + خود.نام);\n    }\n}\nمتغیر s = نیا طالب_علم("Ali");\ns.دکھاؤ();'],['Matemática','متغیر x = 2 + 3;\nلکھو(x)']];
-var sel=document.createElement('select');sel.innerHTML='<option value="">📚 Ejemplos / Examples</option>';
-EX.forEach(function(e,i){var o=document.createElement('option');o.value=i;o.textContent=e[0];sel.appendChild(o);});
-sel.onchange=function(){if(sel.value!==''){ta.value=EX[+sel.value][1];render();}sel.value='';};
-bar.appendChild(sel);
-var sh=document.createElement('button');sh.type='button';sh.className='act';sh.textContent='🔗 Compartir';sh.onclick=share;bar.appendChild(sh);
-var sv=document.createElement('span');sv.className='act';sv.id='nx-sv';bar.appendChild(sv);
-var m=location.search.match(/[?&]c=([^&]+)/);
-if(m){try{ta.value=decodeURIComponent(escape(atob(m[1])));}catch(e){}}
-else{var d=localStorage.getItem('nx_draft');if(d)ta.value=d;}
-ta.addEventListener('input',function(){localStorage.setItem('nx_draft',ta.value);render();});
-ta.addEventListener('scroll',sync);
-function sync(){pre.scrollTop=ta.scrollTop;gut.scrollTop=ta.scrollTop;}
-function ins(t){var s=ta.selectionStart||0,e=ta.selectionEnd||0;ta.setRangeText(t+' ',s,e,'end');ta.focus();localStorage.setItem('nx_draft',ta.value);render();}
-function share(){var url=location.origin+location.pathname+'?c='+btoa(unescape(encodeURIComponent(ta.value)));if(navigator.clipboard){navigator.clipboard.writeText(url).then(function(){alert('✅ Link copiado / Copied');});}else{prompt('Copiá el link:',url);}}
-var KRE=/(کلاس|طریقہ|متغیر|نیا|لکھو|خود|جب تک|اگر|ورنہ|واپس)/;
+runBtn.onclick=runCode;
+document.getElementById('actRun').onclick=runCode;
+document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();runCode();} });
+document.getElementById('clearOut').onclick=()=>out.textContent='';
+document.getElementById('copyOut').onclick=()=>{ navigator.clipboard?navigator.clipboard.writeText(out.textContent):prompt('Copy:',out.textContent); };
+const sizes=['45vh','65vh','80vh','25vh']; let si=0;
+document.getElementById('sizeOut').onclick=()=>{ si=(si+1)%sizes.length; document.getElementById('panel').style.height=sizes[si]; };
+/* drag resize */
+const handle=document.getElementById('handle'), panel=document.getElementById('panel');
+handle.addEventListener('pointerdown',e=>{
+  const startY=e.clientY, startH=panel.offsetHeight;
+  const move=ev=>{ panel.style.height=Math.max(90,Math.min(window.innerHeight*0.85,startH+(startY-ev.clientY)))+'px'; };
+  const up=()=>{ window.removeEventListener('pointermove',move); window.removeEventListener('pointerup',up); };
+  window.addEventListener('pointermove',move); window.addEventListener('pointerup',up);
+});
+/* console/problems tabs */
+document.getElementById('ptCon').onclick=()=>{ out.style.display='block'; document.getElementById('problems').style.display='none'; document.getElementById('ptCon').classList.add('on'); document.getElementById('ptProb').classList.remove('on'); };
+document.getElementById('ptProb').onclick=()=>{ out.style.display='none'; document.getElementById('problems').style.display='block'; document.getElementById('ptProb').classList.add('on'); document.getElementById('ptCon').classList.remove('on'); };
+/* ============ EDITOR: highlight, gutter, Ln/Col ============ */
+const ta=document.getElementById('code'), hl=document.getElementById('hl'), gut=document.getElementById('gut'), ed=document.getElementById('editorArea');
+const KW=['کلاس','طریقہ','متغیر','نیا','لکھو','خود','جب تک','اگر','ورنہ','واپس','imprimir','variable','clase','método','nuevo','si','sino','mientras','retornar','print','var','class','method','new','if','else','while','return','self'];
+const CTRL=['جب تک','اگر','ورنہ','واپس','mientras','si','sino','retornar','while','if','else','return'];
 function esc(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function enc(i){var s='';i++;while(i){s=String.fromCharCode(97+(i%26))+s;i=Math.floor(i/26);}return s;}
-function dec(s){var n=0;for(var i=0;i<s.length;i++){n=n*26+(s.charCodeAt(i)-97);}return n-1;}
-function hl(code){var store=[];var e=esc(code);
-e=e.replace(/"[^"\n]*"|'[^'\n]*'/g,function(mm){store.push(['s',mm]);return '\u0001'+enc(store.length-1)+'\u0001';});
-e=e.replace(/#[^\n]*/g,function(mm){store.push(['c',mm]);return '\u0001'+enc(store.length-1)+'\u0001';});
-e=e.replace(/\b\d+(\.\d+)?\b/g,function(mm){store.push(['n',mm]);return '\u0001'+enc(store.length-1)+'\u0001';});
-e=e.replace(KRE,function(mm){store.push(['k',mm]);return '\u0001'+enc(store.length-1)+'\u0001';});
-e=e.replace(/\u0001([a-z]+)\u0001/g,function(_,i){var it=store[dec(i)];return '<span class="nx-'+it[0]+'">'+it[1]+'</span>';});
-return e;}
-function render(){pre.innerHTML=hl(ta.value)+'\n';var n=ta.value.split('\n').length;var g='';for(var i=1;i<=n;i++)g+=i+'\n';gut.textContent=g;sync();var v=document.getElementById('nx-sv');if(v)v.textContent='💾 '+new Date().toLocaleTimeString();}
-render();
-})();
+function hlCode(code){
+  const store=[]; let e=esc(code);
+  e=e.replace(/"[^"\n]*"|'[^'\n]*'/g,m=>{store.push(['s',m]);return '\u0001'+store.length+'\u0001';});
+  e=e.replace(/#[^\n]*/g,m=>{store.push(['c',m]);return '\u0001'+store.length+'\u0001';});
+  e=e.replace(/\b\d+(\.\d+)?\b/g,m=>{store.push(['n',m]);return '\u0001'+store.length+'\u0001';});
+  e=e.replace(new RegExp('('+KW.join('|')+')','g'),m=>{store.push([CTRL.includes(m)?'kc':'k',m]);return '\u0001'+store.length+'\u0001';});
+  e=e.replace(/\u0001(\d+)\u0001/g,(_,i)=>{const it=store[i-1];return '<span class="'+it[0]+'">'+it[1]+'</span>';});
+  return e;
+}
+function render(){
+  hl.innerHTML=hlCode(ta.value)+'\n';
+  const n=ta.value.split('\n').length; let g=''; for(let i=1;i<=n;i++)g+=i+'\n'; gut.textContent=g; sync();
+}
+function sync(){ hl.scrollTop=ta.scrollTop; gut.scrollTop=ta.scrollTop; }
+ta.addEventListener('scroll',sync);
+ta.addEventListener('input',()=>{ localStorage.setItem('nx_draft',ta.value); render(); updLn(); });
+ta.addEventListener('keyup',updLn); ta.addEventListener('click',updLn);
+function updLn(){
+  const p=ta.selectionStart||0, before=ta.value.slice(0,p), ln=before.split('\n').length, col=p-before.lastIndexOf('\n');
+  document.getElementById('lnCol').textContent='Ln '+ln+', Col '+col;
+}
+/* palette + examples + dir + share + draft */
+const pal=document.getElementById('pal');
+['کلاس','طریقہ','متغیر','نیا','لکھو','خود','جب تک','اگر','ورنہ','واپس'].forEach(k=>{
+  const b=document.createElement('button'); b.textContent=k;
+  b.onclick=()=>{ const s=ta.selectionStart||0; ta.setRangeText(k+' ',s,ta.selectionEnd||0,'end'); ta.focus(); localStorage.setItem('nx_draft',ta.value); render(); };
+  pal.appendChild(b);
+});
+const EX=[['سلام دنیا (Urdu hello)','لکھو("سلام دنیا")'],
+['Clase / کلاس (OOP)','کلاس طالب_علم {\n    طریقہ init(نام) {\n        خود.نام = نام;\n    }\n    طریقہ دکھاؤ() {\n        لکھو("سلام " + خود.نام);\n    }\n}\nمتغیر s = نیا طالب_علم("Ali");\ns.دکھاؤ();'],
+['Español: imprimir','imprimir("hola mundo")'],
+['English: print','print("hello world")'],
+['Matemática','متغیر x = 2 + 3;\nلکھو(x)']];
+const exSel=document.getElementById('exSel');
+EX.forEach((e,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=e[0]; exSel.appendChild(o); });
+exSel.onchange=()=>{ if(exSel.value!==''){ ta.value=EX[+exSel.value][1]; localStorage.setItem('nx_draft',ta.value); render(); } exSel.value=''; };
+document.getElementById('dirBtn').onclick=()=>{
+  const rtl=ed.classList.toggle('rtl');
+  ta.dir=rtl?'rtl':'ltr'; hl.dir=rtl?'rtl':'ltr';
+  document.getElementById('crumbLang').textContent=rtl?'Urdu RTL':'LTR mode';
+};
+function share(){
+  const url=location.origin+location.pathname+'?c='+btoa(unescape(encodeURIComponent(ta.value)));
+  if(navigator.clipboard) navigator.clipboard.writeText(url).then(()=>alert('✅ Link copied — share it anywhere'));
+  else prompt('Copy the link:',url);
+}
+document.getElementById('actShare').onclick=share;
+const GH='https://github.com/neuralfocusai-rgb/Nexuslang';
+document.getElementById('ghTop').onclick=()=>open(GH);
+document.getElementById('actGh').onclick=()=>open(GH);
+/* tabs code/readme */
+const readme=document.getElementById('readme');
+function showCode(){ ed.style.display='block'; readme.style.display='none'; document.getElementById('tabCode').classList.add('on'); document.getElementById('tabReadme').classList.remove('on'); document.getElementById('actCode').classList.add('on'); document.getElementById('actReadme').classList.remove('on'); }
+function showReadme(){ ed.style.display='none'; readme.style.display='block'; document.getElementById('tabReadme').classList.add('on'); document.getElementById('tabCode').classList.remove('on'); document.getElementById('actReadme').classList.add('on'); document.getElementById('actCode').classList.remove('on'); }
+document.getElementById('tabCode').onclick=showCode; document.getElementById('actCode').onclick=showCode;
+document.getElementById('tabReadme').onclick=showReadme; document.getElementById('actReadme').onclick=showReadme;
+/* ============ README (institutional layer) ============ */
+readme.innerHTML=`
+<h1>NexusLang 🇦 🇵🇰 🇪🇸</h1>
+<div class="badges"><span class="bd">v5.4.0</span><span class="bd">tests 11/11 ✓</span><span class="bd">open source</span><span class="bd">free forever</span><span class="bd">EN / ES / UR</span></div>
+<p><b>The first trilingual programming language</b> with native Urdu right-to-left syntax — not translated keywords. A clean lexer, parser and tree-walk interpreter: native AST, native execution, no transpilation to English underneath.</p>
+<p><b>The mission:</b> nobody should need to borrow a foreign language just to learn to code. Mother tongue for learning, English for global interchange.</p>
+<h2>⚡ Install</h2>
+<pre>curl -fsSL https://raw.githubusercontent.com/neuralfocusai-rgb/Nexuslang/main/install.sh | bash</pre>
+<pre>pip install git+https://github.com/neuralfocusai-rgb/Nexuslang.git</pre>
+<h2>🧩 Integrations & ecosystem</h2>
+<div class="grid">
+<div class="card"><h3>🐍 Pyodide Runtime</h3><p>This playground runs NexusLang in your browser via WebAssembly Python — zero install.</p></div>
+<div class="card"><h3>🐙 GitHub</h3><p>Open source repo, issues, PRs and releases. Star it and contribute.</p></div>
+<div class="card"><h3>⚡ One-line installer</h3><p>curl | bash installer, Rust/Node style, for Linux, macOS and Termux.</p></div>
+<div class="card"><h3>📦 pip / git</h3><p>Standard Python packaging flow: pip install from the public repo.</p></div>
+<div class="card"><h3>🐳 Docker (roadmap)</h3><p>ghcr.io container image for universities and enterprise labs.</p></div>
+<div class="card"><h3>🧩 VS Code extension (roadmap)</h3><p>Syntax highlighting + run button for .nx files inside VS Code.</p></div>
+<div class="card"><h3>🤖 LLM tutor (roadmap)</h3><p>AI tutor that explains and generates NexusLang code in your language.</p></div>
+<div class="card"><h3>🔗 Share links</h3><p>Every snippet is shareable via URL — classrooms, WhatsApp, LinkedIn.</p></div>
+</div>
+<h2>💻 On your PC (VS Code / Notepad)</h2>
+<p>1. Download the interpreter: <a href="nexuslang_v12.py" download style="color:var(--gold)">⬇ nexuslang_v12.py</a><br>
+2. Write code in Notepad/VS Code as <code>programa.nx</code><br>
+3. Run: <code>python nexuslang_v12.py programa.nx</code></p>
+<h2>🌍 Global presence</h2>
+<p>Partners, testers & contributors across: 🇦 Argentina · 🇵 Pakistan ·  India · 🇹 Ethiopia · 🇪 Montenegro · 🇺🇸 USA · LatAm</p>
+<h2>⭐ Get involved</h2>
+<p>Contribute code, translate syntax, pilot at your university.</p>
+<a class="btn" href="https://github.com/neuralfocusai-rgb/Nexuslang">GitHub repository</a>
+<a class="btn g" href="mailto:lucas@nexuslang.org">Contact founder</a>
+<p style="margin-top:26px;font-size:11.5px;color:#666">© 2026 NexusLang · Built in Argentina, deployed to the world.</p>`;
+/* init */
+const m=location.search.match(/[?&]c=([^&]+)/);
+if(m){ try{ ta.value=decodeURIComponent(escape(atob(m[1]))); }catch(e){} }
+else { const d=localStorage.getItem('nx_draft'); if(d) ta.value=d; }
+render(); updLn(); loadInterpreter();
 </script>
 </body>
 </html>
