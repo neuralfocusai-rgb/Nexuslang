@@ -1,0 +1,11 @@
+// NexusLang — Türkçe örnek (alpha)
+fonksiyon selam(isim):
+    yaz("Merhaba, " + isim + "!")
+
+her i için aralık(1, 4):
+    selam("Dünya")
+
+eğer 3 > 2 ise:
+    yaz("Doğru!")
+yoksa:
+    yaz("Yanlış!")

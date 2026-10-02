@@ -1,0 +1,28 @@
+{
+  "tr": {
+    "print": "yaz",
+    "if": "eğer",
+    "then": "ise",
+    "else": "yoksa",
+    "for_each": "her",
+    "for_in": "için",
+    "range": "aralık",
+    "while": "sürdükçe",
+    "function": "fonksiyon",
+    "return": "döndür",
+    "and": "ve",
+    "or": "veya",
+    "not": "değil",
+    "true": "doğru",
+    "false": "yanlış",
+    "null": "yok",
+    "class": "sınıf",
+    "import": "getir",
+    "try": "dene",
+    "catch": "yakala",
+    "break": "dur",
+    "continue": "devam",
+    "len": "uzunluk",
+    "input": "oku"
+  }
+}
