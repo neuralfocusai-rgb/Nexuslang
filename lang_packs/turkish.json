@@ -1,0 +1,36 @@
+{
+  "keywords": {
+    "yazdır": "print",
+    "eğer": "if",
+    "yoksa": "else",
+    "sürece": "while",
+    "sınıf": "class",
+    "kendisi": "self",
+    "kurucu": "constructor",
+    "içe_aktar": "import",
+    "dene": "try",
+    "yakala": "catch",
+    "çıktı": "print",
+    "girdi": "input",
+    "fonksiyon": "function",
+    "döndür": "return",
+    "ve": "and",
+    "veya": "or",
+    "değil": "not",
+    "doğru": "true",
+    "yanlış": "false",
+    "boş": "null",
+    "yeni": "new",
+    "bu": "this",
+    "üst": "super",
+    "kır": "break",
+    "devam": "continue",
+    "geç": "pass"
+  },
+  "builtins": ["yazdır", "girdi", "çıktı", "uzunluk", "aralık", "tür"],
+  "operators": {
+    "ve": "and",
+    "veya": "or",
+    "değil": "not"
+  }
+}
