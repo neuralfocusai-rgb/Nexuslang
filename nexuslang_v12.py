@@ -208,10 +208,8 @@ class Interp:
             self.consume('ASSIGN')
             v = self.expression()
             self.eat_semi()
-            if name in self.vars:
-                self.vars[name] = v
-            else:
-                raise NexusError(f"متغیر {name} پہلے سے موجود نہیں", self.cur()['line'])
+            # CORRECCIÓN: Permitir crear variables nuevas sin 'VAR' (como Python/JS)
+            self.vars[name] = v
         else:
             self.expression()
             self.eat_semi()
@@ -679,7 +677,7 @@ class Interp:
 # ==========================================
 def run_file(filepath):
     if not os.path.exists(filepath):
-        print(f" Archivo no encontrado: {filepath}")
+        print(f"❌ Archivo no encontrado: {filepath}")
         sys.exit(1)
     with open(filepath, 'r', encoding='utf-8') as f:
         code = f.read()
