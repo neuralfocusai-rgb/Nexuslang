@@ -1,29 +1,63 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import sys, re
+import sys, re, json, os
 
-KW = {
-    'متغیر':'VAR','variable':'VAR','var':'VAR',
-    'لکھو':'PRINT','escribir':'PRINT','print':'PRINT',
-    'اگر':'IF','si':'IF','if':'IF',
-    'ورنہ':'ELSE','sino':'ELSE','else':'ELSE',
-    'جبکہ':'WHILE','mientras':'WHILE','while':'WHILE',
-    'برائے':'FOR','para':'FOR','for':'FOR',
-    'طریقہ':'DEF','funcion':'DEF','def':'DEF','function':'DEF',
-    'واپس':'RETURN','retornar':'RETURN','return':'RETURN',
-    'کلاس':'CLASS','clase':'CLASS','class':'CLASS',
-    'خود':'SELF','esto':'SELF','self':'SELF',
-    'نیا':'NEW','nuevo':'NEW','new':'NEW',
-    'کوشش':'TRY','intentar':'TRY','try':'TRY',
-    'پکڑو':'CATCH','capturar':'CATCH','catch':'CATCH',
-    'توڑو':'BREAK','romper':'BREAK','break':'BREAK',
-    'جاری':'CONTINUE','continuar':'CONTINUE','continue':'CONTINUE',
-    'صحيح':'TRUE','verdadero':'TRUE','true':'TRUE',
-    'غلط':'FALSE','falso':'FALSE','false':'FALSE',
-    'خالی':'NONE','nulo':'NONE','null':'NONE','none':'NONE',
-    'درآمد':'IMPORT','importar':'IMPORT','import':'IMPORT',
+# ==========================================
+# 1. CARGA DINÁMICA DE LANGUAGE PACKS
+# ==========================================
+LANG_PACKS = {}
+LANG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lang_packs')
+
+def load_lang_packs():
+    if not os.path.exists(LANG_DIR):
+        print(f"⚠️ Carpeta '{LANG_DIR}' no encontrada. Usando keywords por defecto.")
+        return
+    for filename in os.listdir(LANG_DIR):
+        if filename.endswith('.json'):
+            lang_name = filename.replace('.json', '')
+            filepath = os.path.join(LANG_DIR, filename)
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    pack = json.load(f)
+                    LANG_PACKS[lang_name] = pack.get('keywords', {})
+            except Exception as e:
+                print(f"⚠️ Error cargando {filename}: {e}")
+
+load_lang_packs()
+
+# Keywords base (Inglés + Español + Urdu/Turco esenciales)
+DEFAULT_KW = {
+    'var': 'VAR', 'variable': 'VAR', 'متغیر': 'VAR',
+    'print': 'PRINT', 'escribir': 'PRINT', 'لکھو': 'PRINT', 'yazdır': 'PRINT', 'imprimir': 'PRINT',
+    'if': 'IF', 'si': 'IF', 'اگر': 'IF', 'eğer': 'IF',
+    'else': 'ELSE', 'sino': 'ELSE', 'ورنہ': 'ELSE', 'yoksa': 'ELSE',
+    'while': 'WHILE', 'mientras': 'WHILE', 'جبکہ': 'WHILE', 'sürece': 'WHILE',
+    'for': 'FOR', 'para': 'FOR', 'برائے': 'FOR',
+    'def': 'DEF', 'function': 'DEF', 'funcion': 'DEF', 'طریقہ': 'DEF', 'fonksiyon': 'DEF',
+    'return': 'RETURN', 'retornar': 'RETURN', 'واپس': 'RETURN', 'döndür': 'RETURN',
+    'class': 'CLASS', 'clase': 'CLASS', 'کلاس': 'CLASS', 'sınıf': 'CLASS',
+    'self': 'SELF', 'esto': 'SELF', 'خود': 'SELF', 'kendisi': 'SELF',
+    'new': 'NEW', 'nuevo': 'NEW', 'نیا': 'NEW', 'yeni': 'NEW',
+    'try': 'TRY', 'intentar': 'TRY', 'کوشش': 'TRY', 'dene': 'TRY',
+    'catch': 'CATCH', 'capturar': 'CATCH', 'پکڑو': 'CATCH', 'yakala': 'CATCH',
+    'break': 'BREAK', 'romper': 'BREAK', 'توڑو': 'BREAK', 'kır': 'BREAK',
+    'continue': 'CONTINUE', 'continuar': 'CONTINUE', 'جاری': 'CONTINUE', 'devam': 'CONTINUE',
+    'true': 'TRUE', 'verdadero': 'TRUE', 'صحيح': 'TRUE', 'doğru': 'TRUE',
+    'false': 'FALSE', 'falso': 'FALSE', 'غلط': 'FALSE', 'yanlış': 'FALSE',
+    'null': 'NONE', 'none': 'NONE', 'nulo': 'NONE', 'خالی': 'NONE', 'boş': 'NONE',
+    'import': 'IMPORT', 'importar': 'IMPORT', 'درآمد': 'IMPORT', 'içe_aktar': 'IMPORT',
 }
 
+# Fusionar: Los JSON tienen prioridad
+KEYWORD_MAP = DEFAULT_KW.copy()
+for lang, keywords in LANG_PACKS.items():
+    KEYWORD_MAP.update(keywords)
+
+print(f"✅ NexusLang v12 cargado. {len(KEYWORD_MAP)} keywords reconocidas ({len(LANG_PACKS)} packs extra).")
+
+# ==========================================
+# 2. TOKENS (Regex actualizado para Unicode completo)
+# ==========================================
 TOKENS = [
     ('STRING', r'"[^"]*"|\'[^\']*\''),
     ('NUMBER', r'\d+(?:\.\d+)?'),
@@ -39,12 +73,16 @@ TOKENS = [
     ('LBRACE', r'\{'),
     ('RBRACE', r'\}'),
     ('DOT', r'\.'),
-    ('IDENT', r'[A-Za-z_\u0600-\u06FF][A-Za-z0-9_\u0600-\u06FF]*'),
+    ('IDENT', r'[^\W\d_]\w*'),
     ('WS', r'\s+'),
 ]
 
+# ==========================================
+# 3. TOKENIZER
+# ==========================================
 def tokenize(code):
     code = re.sub(r'//[^\n]*', '', code)
+    code = re.sub(r'#[^\n]*', '', code)
     rx = re.compile('|'.join(f'(?P<{n}>{p})' for n, p in TOKENS))
     tokens = []
     line = 1
@@ -54,8 +92,8 @@ def tokenize(code):
         if kind == 'WS':
             line += val.count('\n')
             continue
-        if kind == 'IDENT' and val in KW:
-            kind = KW[val]
+        if kind == 'IDENT' and val in KEYWORD_MAP:
+            kind = KEYWORD_MAP[val]
         elif kind == 'NUMBER':
             val = float(val) if '.' in val else int(val)
         elif kind == 'STRING':
@@ -66,6 +104,9 @@ def tokenize(code):
     tokens.append({'kind': 'EOF', 'value': None, 'line': line})
     return tokens
 
+# ==========================================
+# 4. EXCEPCIONES
+# ==========================================
 class ReturnExc(Exception):
     def __init__(self, v): self.v = v
 class BreakExc(Exception): pass
@@ -76,6 +117,9 @@ class NexusError(Exception):
         self.line = line
         super().__init__(f"\n⛔ غلطی لائن {line}: {msg}\nError en línea {line}: {msg}\nLine {line} error: {msg}")
 
+# ==========================================
+# 5. STDLIB
+# ==========================================
 STDLIB = {
     'input': lambda: input(),
     'len': lambda x: len(x) if isinstance(x, (str, list)) else 0,
@@ -86,6 +130,9 @@ STDLIB = {
     'print': print,
 }
 
+# ==========================================
+# 6. INTÉRPRETE
+# ==========================================
 class Interp:
     def __init__(self):
         self.vars = {}
@@ -186,6 +233,7 @@ class Interp:
         v = self.expression()
         self.eat_semi()
         self.output.append(str(v))
+        print(str(v))
     
     def skip_block(self):
         self.consume('LBRACE')
@@ -246,7 +294,6 @@ class Interp:
     def for_stmt(self):
         self.consume('FOR')
         self.consume('LPAREN')
-        
         if self.cur()['kind'] == 'VAR':
             self.consume('VAR')
             name = self.consume('IDENT')['value']
@@ -258,24 +305,18 @@ class Interp:
             self.consume('ASSIGN')
             v = self.expression()
             self.vars[name] = v
-        
         if self.cur()['kind'] == 'SEMI':
             self.pos += 1
-        
         cond_start = self.pos
         self.expression()
-        
         if self.cur()['kind'] == 'SEMI':
             self.pos += 1
-        
         inc_start = self.pos
         self.expression()
         self.consume('RPAREN')
-        
         body_start = self.pos
         self.skip_block()
         body_end = self.pos
-        
         while True:
             self.pos = cond_start
             cond = self.expression()
@@ -360,7 +401,6 @@ class Interp:
                 brace_count -= 1
             self.pos += 1
         try_end = self.pos - 1
-        
         if self.cur()['kind'] == 'CATCH':
             self.consume('CATCH')
             self.consume('LPAREN')
@@ -376,7 +416,6 @@ class Interp:
                     brace_count -= 1
                 self.pos += 1
             catch_end = self.pos - 1
-            
             save_pos = self.pos
             self.pos = try_start
             try:
@@ -573,15 +612,18 @@ class Interp:
                 if self.cur()['kind'] == 'LPAREN':
                     expr = {'__class__': expr['__class__'], 'name': mname, 'obj': expr}
                 else:
-                    expr = expr['__data__'].get(mname)
-            elif self.cur()['kind'] == 'LBRACKET' and isinstance(expr, list):
+                    if mname in expr['__data__']:
+                        expr = expr['__data__'][mname]
+                    else:
+                        raise NexusError(f"Property {mname} not found", 0)
+            elif self.cur()['kind'] == 'LBRACKET' and isinstance(expr, (list, str)):
                 self.pos += 1
                 idx = self.expression()
                 self.consume('RBRACKET')
-                if isinstance(idx, int) and 0 <= idx < len(expr):
+                if isinstance(expr, list):
                     expr = expr[idx]
                 else:
-                    raise NexusError(f"Index {idx} out of bounds", 0)
+                    expr = expr[idx]
             else:
                 break
         return expr
@@ -591,19 +633,35 @@ class Interp:
         if t['kind'] == 'NUMBER':
             self.pos += 1
             return t['value']
-        if t['kind'] == 'STRING':
+        elif t['kind'] == 'STRING':
             self.pos += 1
             return t['value']
-        if t['kind'] == 'TRUE':
+        elif t['kind'] == 'TRUE':
             self.pos += 1
             return True
-        if t['kind'] == 'FALSE':
+        elif t['kind'] == 'FALSE':
             self.pos += 1
             return False
-        if t['kind'] == 'NONE':
+        elif t['kind'] == 'NONE':
             self.pos += 1
             return None
-        if t['kind'] == 'LBRACKET':
+        elif t['kind'] == 'IDENT':
+            self.pos += 1
+            name = t['value']
+            if name in self.vars:
+                return self.vars[name]
+            elif name in self.functions:
+                return name
+            elif name in self.classes:
+                return {'__class__': name}
+            else:
+                raise NexusError(f"Variable {name} not defined", t['line'])
+        elif t['kind'] == 'LPAREN':
+            self.pos += 1
+            v = self.expression()
+            self.consume('RPAREN')
+            return v
+        elif t['kind'] == 'LBRACKET':
             self.pos += 1
             arr = []
             if self.cur()['kind'] != 'RBRACKET':
@@ -613,44 +671,33 @@ class Interp:
                     arr.append(self.expression())
             self.consume('RBRACKET')
             return arr
-        if t['kind'] == 'NEW':
-            self.pos += 1
-            cname = self.consume('IDENT')['value']
-            if cname in self.classes:
-                return cname
-            else:
-                raise NexusError(f"Class {cname} not defined", t['line'])
-        if t['kind'] == 'SELF':
-            self.pos += 1
-            return self.vars.get('self')
-        if t['kind'] == 'IDENT':
-            self.pos += 1
-            name = t['value']
-            if name in self.vars:
-                return self.vars[name]
-            if name in self.functions:
-                return name
-            raise NexusError(f"Variable {name} not defined", t['line'])
-        if t['kind'] == 'LPAREN':
-            self.pos += 1
-            v = self.expression()
-            self.consume('RPAREN')
-            return v
-        raise NexusError(f"Unexpected token: {t['value']}", t['line'])
+        else:
+            raise NexusError(f"Unexpected token: {t['kind']} ({t['value']})", t['line'])
 
-def run_code(code):
+# ==========================================
+# 7. EJECUCIÓN
+# ==========================================
+def run_file(filepath):
+    if not os.path.exists(filepath):
+        print(f" Archivo no encontrado: {filepath}")
+        sys.exit(1)
+    with open(filepath, 'r', encoding='utf-8') as f:
+        code = f.read()
+    tokens = tokenize(code)
+    interp = Interp()
+    interp.tokens = tokens
     try:
-        it = Interp()
-        it.tokens = tokenize(code)
-        it.parse()
-        return '\n'.join(it.output)
+        interp.parse()
+    except NexusError as e:
+        print(e)
+        sys.exit(1)
     except Exception as e:
-        return str(e)
+        print(f"❌ Error fatal: {e}")
+        sys.exit(1)
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print("Usage: python nexuslang_v12.py <file.nx>")
+        print("Uso: python3 nexuslang_v12.py <archivo.nx>")
+        print("Ejemplo: python3 nexuslang_v12.py examples/urdu/001_hello.nx")
         sys.exit(1)
-    with open(sys.argv[1], encoding='utf-8') as f:
-        code = f.read()
-    print(run_code(code))
+    run_file(sys.argv[1])
