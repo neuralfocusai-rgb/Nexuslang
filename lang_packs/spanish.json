@@ -1,0 +1,35 @@
+{
+  "keywords": {
+    "imprimir": "print",
+    "si": "if",
+    "sino": "else",
+    "mientras": "while",
+    "clase": "class",
+    "mismo": "self",
+    "constructor": "constructor",
+    "importar": "import",
+    "intentar": "try",
+    "capturar": "catch",
+    "entrada": "input",
+    "funcion": "function",
+    "retornar": "return",
+    "y": "and",
+    "o": "or",
+    "no": "not",
+    "verdadero": "true",
+    "falso": "false",
+    "nulo": "null",
+    "nuevo": "new",
+    "este": "this",
+    "super": "super",
+    "romper": "break",
+    "continuar": "continue",
+    "pasar": "pass"
+  },
+  "builtins": ["imprimir", "entrada", "longitud", "rango", "tipo"],
+  "operators": {
+    "y": "and",
+    "o": "or",
+    "no": "not"
+  }
+}
